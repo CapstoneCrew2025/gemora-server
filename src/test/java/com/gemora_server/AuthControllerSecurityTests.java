@@ -14,8 +14,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AuthController.class)
 @Import(SecurityConfig.class)
@@ -44,5 +46,14 @@ class AuthControllerSecurityTests {
                 .andExpect(status().isOk())
                 .andExpect(content().string("User registered successfully!"));
     }
-}
 
+    @Test
+    void cors_preflight_should_be_permitted_for_register() throws Exception {
+        mockMvc.perform(options("/api/auth/register")
+                        .header("Origin", "http://localhost:3000")
+                        .header("Access-Control-Request-Method", "POST"))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Access-Control-Allow-Origin"))
+                .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"));
+    }
+}
