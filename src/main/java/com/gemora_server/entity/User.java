@@ -30,6 +30,10 @@ public class User {
     @Column(nullable = false)
     private String role = "USER";
 
+    private String idFrontImageUrl;
+    private String idBackImageUrl;
+    private String selfieImageUrl;
+
     @Builder.Default
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
