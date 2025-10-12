@@ -6,6 +6,7 @@ import com.gemora_server.dto.RegisterRequestDto;
 import com.gemora_server.dto.RegisterResponseDto;
 import com.gemora_server.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,26 +19,29 @@ public class AuthController {
 
     private final AuthService userService;
 
-    @PostMapping(value = "/register", consumes = "multipart/form-data")
-    public ResponseEntity<?> register(
-            @RequestParam("name") String name,
-            @RequestParam("email") String email,
-            @RequestParam("password") String password,
-            @RequestParam("idFrontImage") MultipartFile idFrontImage,
-            @RequestParam("idBackImage") MultipartFile idBackImage,
-            @RequestParam("selfieImage") MultipartFile selfieImage) {
-
+    // JSON registration
+    @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
         try {
-            RegisterRequestDto request = RegisterRequestDto.builder()
-                    .name(name)
-                    .email(email)
-                    .password(password)
-                    .idFrontImage(idFrontImage)
-                    .idBackImage(idBackImage)
-                    .selfieImage(selfieImage)
-                    .build();
-
             RegisterResponseDto result = userService.registerUser(request);
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
+        }
+    }
+
+    // Multipart registration (file uploads)
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> registerWithFiles(
+            @RequestPart("name") String name,
+            @RequestPart("email") String email,
+            @RequestPart("password") String password,
+            @RequestPart(value = "idFrontImage", required = false) MultipartFile idFrontImage,
+            @RequestPart(value = "idBackImage", required = false) MultipartFile idBackImage,
+            @RequestPart(value = "selfieImage", required = false) MultipartFile selfieImage
+    ) {
+        try {
+            RegisterResponseDto result = userService.registerUserWithFiles(name, email, password, idFrontImage, idBackImage, selfieImage);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
