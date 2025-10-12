@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,22 +63,30 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
-        return new LoginResponseDto(token,user.getRole());
+        return new LoginResponseDto(token, user.getRole());
     }
 
     private String saveFile(MultipartFile file, String prefix) {
         if (file == null || file.isEmpty()) return null;
 
         try {
-            Files.createDirectories(Paths.get(UPLOAD_DIR));
+
+            String basePath = System.getProperty("user.dir") + File.separator + "uploads" + File.separator + "users" + File.separator;
+            File uploadDir = new File(basePath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
             String fileName = prefix + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
-            Path filePath = Paths.get(UPLOAD_DIR + fileName);
-            file.transferTo(filePath.toFile());
-            return filePath.toString();
+            File destinationFile = new File(uploadDir, fileName);
+            file.transferTo(destinationFile);
+            return basePath + fileName;
+
         } catch (IOException e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
-    }
 
+
+    }
 
 }
