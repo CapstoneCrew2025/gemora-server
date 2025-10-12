@@ -19,18 +19,7 @@ public class AuthController {
 
     private final AuthService userService;
 
-    // JSON registration
-    @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> register(@RequestBody RegisterRequestDto request) {
-        try {
-            RegisterResponseDto result = userService.registerUser(request);
-            return ResponseEntity.ok(result);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
-        }
-    }
 
-    // Multipart registration (file uploads)
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> registerWithFiles(
             @RequestPart("name") String name,
@@ -41,7 +30,8 @@ public class AuthController {
             @RequestPart(value = "selfieImage", required = false) MultipartFile selfieImage
     ) {
         try {
-            RegisterResponseDto result = userService.registerUserWithFiles(name, email, password, idFrontImage, idBackImage, selfieImage);
+            RegisterResponseDto result = userService.registerUserWithFiles(
+                    name, email, password, idFrontImage, idBackImage, selfieImage);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
@@ -54,7 +44,9 @@ public class AuthController {
             LoginResponseDto result = userService.loginUser(request);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new LoginResponseDto(null, "Login failed: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(
+                    new LoginResponseDto(null, "Login failed: " + e.getMessage())
+            );
         }
     }
 }

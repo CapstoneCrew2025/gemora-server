@@ -27,28 +27,9 @@ public class AuthServiceImpl implements AuthService {
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "users" + File.separator;
 
     @Override
-    public RegisterResponseDto registerUser(RegisterRequestDto request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered!");
-        }
-
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                // JSON registration path: no files are saved here
-                .role("USER")
-                .build();
-
-        userRepository.save(user);
-        String token = jwtUtil.generateToken(user.getEmail());
-
-        return new RegisterResponseDto("User registered successfully!", token, user.getRole());
-    }
-
-    @Override
     public RegisterResponseDto registerUserWithFiles(String name, String email, String password,
                                                      MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage) {
+
         if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered!");
         }
@@ -93,15 +74,16 @@ public class AuthServiceImpl implements AuthService {
             if (!uploadDir.exists() && !uploadDir.mkdirs()) {
                 throw new IOException("Failed to create upload directory: " + basePath);
             }
+
             String original = file.getOriginalFilename();
             String sanitized = (original == null ? "file" : original).replaceAll("[^a-zA-Z0-9._-]", "_");
             String fileName = prefix + "_" + System.currentTimeMillis() + "_" + sanitized;
             File destinationFile = new File(uploadDir, fileName);
             file.transferTo(destinationFile);
-            // Return a relative path to avoid leaking local machine absolute paths
             return UPLOAD_SUBDIR + fileName;
         } catch (IOException e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
     }
 }
+

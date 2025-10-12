@@ -8,9 +8,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface AuthService {
 
-    RegisterResponseDto  registerUser(RegisterRequestDto request);
+//    RegisterResponseDto  registerUser(RegisterRequestDto request);
 
-    // New: multipart registration variant
+
     RegisterResponseDto registerUserWithFiles(String name, String email, String password,
                                               MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage);
 
