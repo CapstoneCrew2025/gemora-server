@@ -3,6 +3,7 @@ package com.gemora_server.service.impl;
 import com.gemora_server.dto.LoginRequestDto;
 import com.gemora_server.dto.LoginResponseDto;
 import com.gemora_server.dto.RegisterRequestDto;
+import com.gemora_server.dto.RegisterResponseDto;
 import com.gemora_server.entity.User;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.AuthService;
@@ -14,36 +15,33 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
-
     private final UserRepo userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    private static final String UPLOAD_DIR = "uploads/users/";
+    private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "users" + File.separator;
 
     @Override
-    public String registerUser(RegisterRequestDto request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+    public RegisterResponseDto registerUserWithFiles(String name, String email, String password,
+                                                     MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage) {
+
+        if (userRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already registered!");
         }
 
-        // Save images
-        String idFrontUrl = saveFile(request.getIdFrontImage(), "id_front");
-        String idBackUrl = saveFile(request.getIdBackImage(), "id_back");
-        String selfieUrl = saveFile(request.getSelfieImage(), "selfie");
+        String idFrontUrl = saveFile(idFrontImage, "id_front");
+        String idBackUrl = saveFile(idBackImage, "id_back");
+        String selfieUrl = saveFile(selfieImage, "selfie");
 
         User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .name(name)
+                .email(email)
+                .password(passwordEncoder.encode(password))
                 .idFrontImageUrl(idFrontUrl)
                 .idBackImageUrl(idBackUrl)
                 .selfieImageUrl(selfieUrl)
@@ -51,12 +49,14 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        return "User registered successfully!";
+        String token = jwtUtil.generateToken(user.getEmail());
+        return new RegisterResponseDto("User registered successfully!", token, user.getRole());
     }
 
     @Override
     public LoginResponseDto loginUser(LoginRequestDto request) {
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new RuntimeException("Invalid email or password!"));
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password!"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password!");
@@ -68,25 +68,22 @@ public class AuthServiceImpl implements AuthService {
 
     private String saveFile(MultipartFile file, String prefix) {
         if (file == null || file.isEmpty()) return null;
-
         try {
-
-            String basePath = System.getProperty("user.dir") + File.separator + "uploads" + File.separator + "users" + File.separator;
+            String basePath = System.getProperty("user.dir") + File.separator + UPLOAD_SUBDIR;
             File uploadDir = new File(basePath);
-            if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
+            if (!uploadDir.exists() && !uploadDir.mkdirs()) {
+                throw new IOException("Failed to create upload directory: " + basePath);
             }
 
-            String fileName = prefix + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            String original = file.getOriginalFilename();
+            String sanitized = (original == null ? "file" : original).replaceAll("[^a-zA-Z0-9._-]", "_");
+            String fileName = prefix + "_" + System.currentTimeMillis() + "_" + sanitized;
             File destinationFile = new File(uploadDir, fileName);
             file.transferTo(destinationFile);
-            return basePath + fileName;
-
+            return UPLOAD_SUBDIR + fileName;
         } catch (IOException e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
-
-
     }
-
 }
+
