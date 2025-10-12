@@ -10,6 +10,13 @@ import com.gemora_server.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +27,28 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    private static final String UPLOAD_DIR = "uploads/users/";
+
     @Override
     public String registerUser(RegisterRequestDto request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered!");
         }
 
-        User user = User.builder().name(request.getName()).email(request.getEmail()).password(passwordEncoder.encode(request.getPassword())).role("USER").build();
+        // Save images
+        String idFrontUrl = saveFile(request.getIdFrontImage(), "id_front");
+        String idBackUrl = saveFile(request.getIdBackImage(), "id_back");
+        String selfieUrl = saveFile(request.getSelfieImage(), "selfie");
+
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .idFrontImageUrl(idFrontUrl)
+                .idBackImageUrl(idBackUrl)
+                .selfieImageUrl(selfieUrl)
+                .role("USER")
+                .build();
 
         userRepository.save(user);
         return "User registered successfully!";
@@ -41,7 +63,30 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
-        return new LoginResponseDto(token,user.getRole());
+        return new LoginResponseDto(token, user.getRole());
+    }
+
+    private String saveFile(MultipartFile file, String prefix) {
+        if (file == null || file.isEmpty()) return null;
+
+        try {
+
+            String basePath = System.getProperty("user.dir") + File.separator + "uploads" + File.separator + "users" + File.separator;
+            File uploadDir = new File(basePath);
+            if (!uploadDir.exists()) {
+                uploadDir.mkdirs();
+            }
+
+            String fileName = prefix + "_" + System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            File destinationFile = new File(uploadDir, fileName);
+            file.transferTo(destinationFile);
+            return basePath + fileName;
+
+        } catch (IOException e) {
+            throw new RuntimeException("File upload failed: " + e.getMessage());
+        }
+
+
     }
 
 }
