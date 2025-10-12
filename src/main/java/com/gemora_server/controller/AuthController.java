@@ -3,6 +3,7 @@ package com.gemora_server.controller;
 import com.gemora_server.dto.LoginRequestDto;
 import com.gemora_server.dto.LoginResponseDto;
 import com.gemora_server.dto.RegisterRequestDto;
+import com.gemora_server.dto.RegisterResponseDto;
 import com.gemora_server.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class AuthController {
     private final AuthService userService;
 
     @PostMapping(value = "/register", consumes = "multipart/form-data")
-    public ResponseEntity<String> register(
+    public ResponseEntity<?> register(
             @RequestParam("name") String name,
             @RequestParam("email") String email,
             @RequestParam("password") String password,
@@ -36,7 +37,7 @@ public class AuthController {
                     .selfieImage(selfieImage)
                     .build();
 
-            String result = userService.registerUser(request);
+            RegisterResponseDto result = userService.registerUser(request);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());

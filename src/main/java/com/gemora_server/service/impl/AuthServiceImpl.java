@@ -3,6 +3,7 @@ package com.gemora_server.service.impl;
 import com.gemora_server.dto.LoginRequestDto;
 import com.gemora_server.dto.LoginResponseDto;
 import com.gemora_server.dto.RegisterRequestDto;
+import com.gemora_server.dto.RegisterResponseDto;
 import com.gemora_server.entity.User;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.AuthService;
@@ -14,9 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String UPLOAD_DIR = "uploads/users/";
 
     @Override
-    public String registerUser(RegisterRequestDto request) {
+    public RegisterResponseDto registerUser(RegisterRequestDto request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered!");
         }
@@ -51,7 +50,9 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        return "User registered successfully!";
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return new RegisterResponseDto("User registered successfully!", token, user.getRole());
     }
 
     @Override
