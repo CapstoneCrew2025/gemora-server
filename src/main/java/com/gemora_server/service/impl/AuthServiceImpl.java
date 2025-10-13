@@ -2,7 +2,6 @@ package com.gemora_server.service.impl;
 
 import com.gemora_server.dto.LoginRequestDto;
 import com.gemora_server.dto.LoginResponseDto;
-import com.gemora_server.dto.RegisterRequestDto;
 import com.gemora_server.dto.RegisterResponseDto;
 import com.gemora_server.entity.User;
 import com.gemora_server.repo.UserRepo;

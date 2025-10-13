@@ -33,15 +33,15 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Allow auth endpoints
+
                         .requestMatchers("/api/auth/**").permitAll()
-                        // Allow public endpoints
+
                         .requestMatchers("/public/**").permitAll()
-                        // Allow error and static resources so errors can render
+                        
                         .requestMatchers("/error", "/", "/index.html", "/favicon.ico", "/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // Return 401 for unauthenticated access instead of default 403 entry point
+
                 .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable);
@@ -52,12 +52,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Use patterns to support any origin; adjust to your frontend origin in production
+
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        // If your frontend uses cookies, set true and specify exact origins; otherwise false is fine
+
         configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
 

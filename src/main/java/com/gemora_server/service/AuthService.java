@@ -2,7 +2,6 @@ package com.gemora_server.service;
 
 import com.gemora_server.dto.LoginRequestDto;
 import com.gemora_server.dto.LoginResponseDto;
-import com.gemora_server.dto.RegisterRequestDto;
 import com.gemora_server.dto.RegisterResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
