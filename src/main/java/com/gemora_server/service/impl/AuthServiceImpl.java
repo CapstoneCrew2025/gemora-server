@@ -49,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
         return new RegisterResponseDto("User registered successfully!", token, user.getRole());
     }
 
@@ -62,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid email or password!");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
         return new LoginResponseDto(token, user.getRole());
     }
 
