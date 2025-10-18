@@ -36,7 +36,7 @@ class AuthControllerSecurityTests {
                         Mockito.<org.springframework.web.multipart.MultipartFile>any(), Mockito.<org.springframework.web.multipart.MultipartFile>any(), Mockito.<org.springframework.web.multipart.MultipartFile>any()))
                 .thenReturn(new RegisterResponseDto("User registered successfully!", "mock-token", "USER"));
 
-        MockMultipartHttpServletRequestBuilder multipartRequest = multipart("/api/auth/register")
+        MockMultipartHttpServletRequestBuilder multipartRequest = (MockMultipartHttpServletRequestBuilder) multipart("/api/auth/register")
                 .param("name", "Binoj")
                 .param("email", "binoj@gemora.com")
                 .param("password", "12345");
