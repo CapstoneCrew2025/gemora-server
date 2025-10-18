@@ -2,7 +2,6 @@ package com.gemora_server.controller;
 
 import com.gemora_server.dto.LoginRequestDto;
 import com.gemora_server.dto.LoginResponseDto;
-import com.gemora_server.dto.RegisterRequestDto;
 import com.gemora_server.dto.RegisterResponseDto;
 import com.gemora_server.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -25,13 +24,14 @@ public class AuthController {
             @RequestPart("name") String name,
             @RequestPart("email") String email,
             @RequestPart("password") String password,
+            @RequestPart("contactNumber") String contactNumber,
             @RequestPart(value = "idFrontImage", required = false) MultipartFile idFrontImage,
             @RequestPart(value = "idBackImage", required = false) MultipartFile idBackImage,
             @RequestPart(value = "selfieImage", required = false) MultipartFile selfieImage
     ) {
         try {
             RegisterResponseDto result = userService.registerUserWithFiles(
-                    name, email, password, idFrontImage, idBackImage, selfieImage);
+                    name, email, password,contactNumber, idFrontImage, idBackImage, selfieImage);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
