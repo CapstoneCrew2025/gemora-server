@@ -2,7 +2,6 @@ package com.gemora_server.service.impl;
 
 import com.gemora_server.dto.LoginRequestDto;
 import com.gemora_server.dto.LoginResponseDto;
-import com.gemora_server.dto.RegisterRequestDto;
 import com.gemora_server.dto.RegisterResponseDto;
 import com.gemora_server.entity.User;
 import com.gemora_server.repo.UserRepo;
@@ -27,7 +26,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "users" + File.separator;
 
     @Override
-    public RegisterResponseDto registerUserWithFiles(String name, String email, String password,
+    public RegisterResponseDto registerUserWithFiles(String name, String email, String password, String contactNumber,
                                                      MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage) {
 
         if (userRepository.existsByEmail(email)) {
@@ -42,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
                 .name(name)
                 .email(email)
                 .password(passwordEncoder.encode(password))
+                .contactNumber(contactNumber)
                 .idFrontImageUrl(idFrontUrl)
                 .idBackImageUrl(idBackUrl)
                 .selfieImageUrl(selfieUrl)
@@ -49,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         userRepository.save(user);
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
         return new RegisterResponseDto("User registered successfully!", token, user.getRole());
     }
 
@@ -62,7 +62,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Invalid email or password!");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getId(), user.getEmail());
         return new LoginResponseDto(token, user.getRole());
     }
 
@@ -80,7 +80,8 @@ public class AuthServiceImpl implements AuthService {
             String fileName = prefix + "_" + System.currentTimeMillis() + "_" + sanitized;
             File destinationFile = new File(uploadDir, fileName);
             file.transferTo(destinationFile);
-            return UPLOAD_SUBDIR + fileName;
+            String relativePath = "uploads/users/" + fileName;
+            return "http://192.168.8.101:8080/" + relativePath.replace("\\", "/");
         } catch (IOException e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
