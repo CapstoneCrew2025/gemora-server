@@ -80,7 +80,8 @@ public class AuthServiceImpl implements AuthService {
             String fileName = prefix + "_" + System.currentTimeMillis() + "_" + sanitized;
             File destinationFile = new File(uploadDir, fileName);
             file.transferTo(destinationFile);
-            return UPLOAD_SUBDIR + fileName;
+            String relativePath = "uploads/users/" + fileName;
+            return "http://192.168.8.101:8080/" + relativePath.replace("\\", "/");
         } catch (IOException e) {
             throw new RuntimeException("File upload failed: " + e.getMessage());
         }
