@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class RegisterRequestDto {
     private String name;
     private String email;
+    private String contactNumber;
     private String password;
 
     private MultipartFile idFrontImage;

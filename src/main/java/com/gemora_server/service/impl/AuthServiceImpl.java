@@ -27,7 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "users" + File.separator;
 
     @Override
-    public RegisterResponseDto registerUserWithFiles(String name, String email, String password,
+    public RegisterResponseDto registerUserWithFiles(String name, String email, String password, String contactNumber,
                                                      MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage) {
 
         if (userRepository.existsByEmail(email)) {
@@ -42,6 +42,7 @@ public class AuthServiceImpl implements AuthService {
                 .name(name)
                 .email(email)
                 .password(passwordEncoder.encode(password))
+                .contactNumber(contactNumber)
                 .idFrontImageUrl(idFrontUrl)
                 .idBackImageUrl(idBackUrl)
                 .selfieImageUrl(selfieUrl)

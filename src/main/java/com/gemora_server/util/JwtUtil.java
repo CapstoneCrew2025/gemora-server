@@ -29,7 +29,7 @@ public class JwtUtil {
     public String generateToken(Long userId, String email) {
         Key key = getSigningKey();
         return Jwts.builder()
-                .subject(email) // can still keep email as subject
+                .subject(email)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .claims(Map.of("userId", userId)) // 👈 Add userId claim

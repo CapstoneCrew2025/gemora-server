@@ -11,7 +11,7 @@ public interface AuthService {
 //    RegisterResponseDto  registerUser(RegisterRequestDto request);
 
 
-    RegisterResponseDto registerUserWithFiles(String name, String email, String password,
+    RegisterResponseDto registerUserWithFiles(String name, String email, String password, String contactNumber,
                                               MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage);
 
     LoginResponseDto loginUser(LoginRequestDto request);
