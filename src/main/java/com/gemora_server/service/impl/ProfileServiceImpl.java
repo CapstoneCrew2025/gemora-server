@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-
+import java.net.URL;
 
 
 @Service
@@ -58,6 +58,11 @@ public class ProfileServiceImpl implements ProfileService {
         // Update selfie if provided
         MultipartFile selfie = request.getSelfieImage();
         if (selfie != null && !selfie.isEmpty()) {
+
+            // Delete the old selfie if it exists
+            deleteOldFile(user.getSelfieImageUrl());
+
+            // Save the new selfie
             String selfieUrl = saveFile(selfie, "selfie");
             user.setSelfieImageUrl(selfieUrl);
         }
@@ -87,6 +92,26 @@ public class ProfileServiceImpl implements ProfileService {
         }
     }
 
+    private void deleteOldFile(String fileUrl) {
+        if (fileUrl == null || fileUrl.isEmpty()) return;
+
+        try {
+            // Convert the URL to local file path
+            URL url = new URL(fileUrl);
+            String filePath = url.getPath(); // /uploads/users/selfie_12345.jpg
+            File oldFile = new File(System.getProperty("user.dir"), filePath);
+
+            if (oldFile.exists()) {
+                if (oldFile.delete()) {
+                    System.out.println("✅ Deleted old selfie: " + oldFile.getAbsolutePath());
+                } else {
+                    System.err.println("⚠️ Failed to delete old selfie: " + oldFile.getAbsolutePath());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Error deleting old selfie: " + e.getMessage());
+        }
+    }
 
     private UserProfileDto mapToDto(User user) {
         return UserProfileDto.builder()
