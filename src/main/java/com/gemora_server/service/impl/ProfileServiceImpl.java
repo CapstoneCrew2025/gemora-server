@@ -1,5 +1,6 @@
 package com.gemora_server.service.impl;
 
+import com.gemora_server.dto.ProfileUpdateDto;
 import com.gemora_server.dto.UserProfileDto;
 import com.gemora_server.entity.User;
 import com.gemora_server.repo.UserRepo;
@@ -27,6 +28,35 @@ public class ProfileServiceImpl implements ProfileService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found!"));
 
+        return mapToDto(user);
+    }
+
+    @Override
+    public UserProfileDto updateUserProfile(String token, ProfileUpdateDto request) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+
+        Long userId = jwtUtil.extractUserId(token);
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+
+        if (request.getName() != null && !request.getName().isEmpty()) {
+            user.setName(request.getName());
+        }
+        if (request.getContactNumber() != null && !request.getContactNumber().isEmpty()) {
+            user.setContactNumber(request.getContactNumber());
+        }
+        if (request.getSelfieImageUrl() != null && !request.getSelfieImageUrl().isEmpty()) {
+            user.setSelfieImageUrl(request.getSelfieImageUrl());
+        }
+
+        userRepo.save(user);
+        return mapToDto(user);
+    }
+
+
+    private UserProfileDto mapToDto(User user) {
         return UserProfileDto.builder()
                 .id(user.getId())
                 .name(user.getName())

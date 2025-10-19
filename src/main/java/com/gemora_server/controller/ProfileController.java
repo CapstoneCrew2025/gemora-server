@@ -1,5 +1,6 @@
 package com.gemora_server.controller;
 
+import com.gemora_server.dto.ProfileUpdateDto;
 import com.gemora_server.dto.UserProfileDto;
 import com.gemora_server.service.ProfileService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,15 @@ public class ProfileController {
 
         UserProfileDto profile = profileService.getUserProfile(token);
         return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping
+    public ResponseEntity<UserProfileDto> updateUserProfile(
+            @RequestHeader("Authorization") String token,
+            @RequestBody ProfileUpdateDto request) {
+
+        UserProfileDto updatedProfile = profileService.updateUserProfile(token, request);
+        return ResponseEntity.ok(updatedProfile);
     }
 
 }
