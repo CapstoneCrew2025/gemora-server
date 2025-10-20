@@ -31,6 +31,11 @@ public class ProfileServiceImpl implements ProfileService {
             token = token.substring(7);
         }
 
+        if (!jwtUtil.validateToken(token)) {
+            throw new RuntimeException("Invalid or expired token!");
+        }
+
+
         Long userId = jwtUtil.extractUserId(token);
 
         User user = userRepo.findById(userId)
@@ -42,6 +47,11 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public UserProfileDto updateUserProfile(String token, ProfileUpdateDto request) {
         if (token.startsWith("Bearer ")) token = token.substring(7);
+
+        if (!jwtUtil.validateToken(token)) {
+            throw new RuntimeException("Invalid or expired token!");
+        }
+
         Long userId = jwtUtil.extractUserId(token);
 
         User user = userRepo.findById(userId)
