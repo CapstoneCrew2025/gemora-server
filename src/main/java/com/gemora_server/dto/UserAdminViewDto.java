@@ -12,7 +12,7 @@ public class UserAdminViewDto {
     private String name;
     private String email;
     private String contactNumber;
-
+    private String role;
     private String idFrontImageUrl;
     private String idBackImageUrl;
     private String selfieImageUrl;
