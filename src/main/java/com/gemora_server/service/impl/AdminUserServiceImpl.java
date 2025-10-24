@@ -1,6 +1,7 @@
 package com.gemora_server.service.impl;
 
 import com.gemora_server.dto.UserAdminViewDto;
+import com.gemora_server.dto.UserUpdateDto;
 import com.gemora_server.entity.User;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.AdminUserService;
@@ -27,6 +28,26 @@ public class AdminUserServiceImpl implements AdminUserService {
         return userRepo.findById(userId)
                 .map(this::toDto)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    @Override
+    public UserAdminViewDto updateUser(Long userId, UserUpdateDto updateDto) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (updateDto.getName() != null) user.setName(updateDto.getName());
+        if (updateDto.getContactNumber() != null) user.setContactNumber(updateDto.getContactNumber());
+
+
+        userRepo.save(user);
+        return toDto(user);
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepo.delete(user);
     }
 
     private UserAdminViewDto toDto(User user) {
