@@ -170,6 +170,18 @@ public class GemServiceImpl implements GemService {
         certificateRepo.save(cert);
     }
 
+
+    @Override
+    public List<GemDto> getAllGemsByStatus(String status) {
+        GemStatus gemStatus = GemStatus.valueOf(status.toUpperCase());
+        return gemRepo.findByStatus(gemStatus)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+
+
     // helper mapping
     private GemDto mapToDto(Gem gem) {
         List<String> imageUrls = gem.getImages().stream().map(GemImage::getFileUrl).collect(Collectors.toList());
