@@ -58,6 +58,14 @@ public class JwtUtil {
     }
 
 
+    public String extractUsername(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        Claims claims = extractAllClaims(token);
+        return claims.getSubject(); // subject = email or username
+    }
+
     public boolean isTokenExpired(String token) {
         Date expiration = extractAllClaims(token).getExpiration();
         return expiration.before(new Date());
