@@ -21,7 +21,11 @@ public class GemController {
 
     //  Create new gem listing
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<GemDto> createGem(@RequestHeader("Authorization") String token, @RequestPart("gem") GemCreateRequest request, @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+    public ResponseEntity<GemDto> createGem(
+            @RequestHeader("Authorization") String token,
+            @ModelAttribute GemCreateRequest request,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+
         Long userId = jwtUtil.extractUserId(token);
         GemDto saved = gemService.createGem(userId, request, images);
         return ResponseEntity.ok(saved);

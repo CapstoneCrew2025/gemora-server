@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        final String token = authHeader.substring(7);
+        final String token = authHeader.substring(7).trim();
 
         try {
             Claims claims = jwtUtil.extractAllClaims(token);
