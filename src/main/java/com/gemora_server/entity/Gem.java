@@ -49,9 +49,11 @@ public class Gem {
     @JoinColumn(name = "seller_id")
     private User seller;
 
+    @Builder.Default
     @OneToMany(mappedBy = "gem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GemImage> images = new ArrayList<>();
 
+    @Builder.Default
     @OneToMany(mappedBy = "gem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Certificate> certificates = new ArrayList<>();
 

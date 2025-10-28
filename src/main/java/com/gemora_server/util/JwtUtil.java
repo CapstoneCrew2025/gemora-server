@@ -38,12 +38,25 @@ public class JwtUtil {
                 .compact();
     }
 
+    private String normalizeToken(String token) {
+        if (token == null) {
+            throw new IllegalArgumentException("Missing Authorization token");
+        }
+        String normalized = token.trim();
+        if (normalized.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            normalized = normalized.substring(7).trim();
+        }
+        // Remove any stray whitespace characters that can break JJWT parsing
+        normalized = normalized.replaceAll("\\s+", "");
+        return normalized;
+    }
 
     public Claims extractAllClaims(String token) {
+        String compact = normalizeToken(token);
         return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
-                .parseSignedClaims(token)
+                .parseSignedClaims(compact)
                 .getPayload();
     }
 
@@ -59,9 +72,6 @@ public class JwtUtil {
 
 
     public String extractUsername(String token) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
         Claims claims = extractAllClaims(token);
         return claims.getSubject(); // subject = email or username
     }
