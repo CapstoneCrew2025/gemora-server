@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,10 +69,13 @@ public class GemServiceImpl implements GemService {
         Gem saved = gemRepo.save(gem);
 
         if (images != null) {
+            if (saved.getImages() == null) {
+                saved.setImages(new ArrayList<>());
+            }
             for (MultipartFile img : images) {
                 String fileName = fileStorageService.storeGemImage(img);
                 Path p = fileStorageService.getFilePath(fileName, false);
-                String url = "/files/gems/" + fileName; // adapt to your file-serving route
+                String url = "/uploads/gems/" + fileName; // aligned with WebConfig mapping
                 GemImage gemImage = GemImage.builder()
                         .fileName(fileName)
                         .fileUrl(url)
