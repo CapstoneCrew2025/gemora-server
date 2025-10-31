@@ -15,6 +15,7 @@ import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.FileStorageService;
 import com.gemora_server.service.GemService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class GemServiceImpl implements GemService {
 
     private final GemRepo gemRepo;
@@ -32,18 +34,6 @@ public class GemServiceImpl implements GemService {
     private final GemImageRepo gemImageRepo;
     private final CertificateRepo certificateRepo;
     private final FileStorageService fileStorageService;
-
-    public GemServiceImpl(GemRepo gemRepo,
-                          UserRepo userRepo,
-                          GemImageRepo gemImageRepo,
-                          CertificateRepo certificateRepo,
-                          FileStorageService fileStorageService) {
-        this.gemRepo = gemRepo;
-        this.userRepo = userRepo;
-        this.gemImageRepo = gemImageRepo;
-        this.certificateRepo = certificateRepo;
-        this.fileStorageService = fileStorageService;
-    }
 
     @Override
     @Transactional
