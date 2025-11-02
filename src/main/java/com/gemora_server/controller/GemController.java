@@ -24,10 +24,11 @@ public class GemController {
     public ResponseEntity<GemDto> createGem(
             @RequestHeader("Authorization") String token,
             @ModelAttribute GemCreateRequest request,
-            @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
+            @RequestPart(value = "certificateFile", required = false) MultipartFile certificateFile) {
 
         Long userId = jwtUtil.extractUserId(token);
-        GemDto saved = gemService.createGem(userId, request, images);
+        GemDto saved = gemService.createGem(userId, request, images, certificateFile);
         return ResponseEntity.ok(saved);
     }
 
