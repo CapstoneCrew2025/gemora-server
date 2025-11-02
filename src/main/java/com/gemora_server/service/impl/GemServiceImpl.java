@@ -8,6 +8,7 @@ import com.gemora_server.entity.Gem;
 import com.gemora_server.entity.GemImage;
 import com.gemora_server.entity.User;
 import com.gemora_server.enums.GemStatus;
+import com.gemora_server.enums.ListingType;
 import com.gemora_server.repo.CertificateRepo;
 import com.gemora_server.repo.GemImageRepo;
 import com.gemora_server.repo.GemRepo;
@@ -37,7 +38,7 @@ public class GemServiceImpl implements GemService {
 
     @Override
     @Transactional
-    public GemDto createGem(Long sellerId, GemCreateRequest request, List<MultipartFile> images) {
+    public GemDto createGem(Long sellerId, GemCreateRequest request, List<MultipartFile> images, MultipartFile certificateFile) {
         User seller = userRepo.findById(sellerId)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
 
@@ -47,37 +48,65 @@ public class GemServiceImpl implements GemService {
                 .category(request.getCategory())
                 .carat(request.getCarat())
                 .origin(request.getOrigin())
-                .certificationNumber(request.getCertificationNumber())
                 .price(request.getPrice())
-                .listingType(request.getListingType() == null ? com.gemora_server.enums.ListingType.SALE : request.getListingType())
+                .listingType(request.getListingType() == null ? ListingType.SALE : request.getListingType())
                 .seller(seller)
                 .status(GemStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
-        Gem saved = gemRepo.save(gem);
+        Gem savedGem = gemRepo.save(gem);
 
+        // ✅ Save images (if provided)
         if (images != null) {
-            if (saved.getImages() == null) {
-                saved.setImages(new ArrayList<>());
-            }
+            if (savedGem.getImages() == null) savedGem.setImages(new ArrayList<>());
+
             for (MultipartFile img : images) {
                 String fileName = fileStorageService.storeGemImage(img);
-                Path p = fileStorageService.getFilePath(fileName, false);
-                String url = "/uploads/gems/" + fileName; // aligned with WebConfig mapping
+                String url = "/uploads/gems/" + fileName;
                 GemImage gemImage = GemImage.builder()
                         .fileName(fileName)
                         .fileUrl(url)
-                        .gem(saved)
+                        .gem(savedGem)
                         .build();
                 gemImageRepo.save(gemImage);
-                saved.getImages().add(gemImage);
+                savedGem.getImages().add(gemImage);
             }
         }
 
-        return mapToDto(saved);
+        // ✅ Save certificate if provided
+        if (certificateFile != null && !certificateFile.isEmpty()) {
+            String fileName = fileStorageService.storeCertificateFile(certificateFile);
+            String url = "/files/certificates/" + fileName;
+
+            LocalDate parsedIssueDate = null;
+            try {
+                if (request.getIssueDate() != null) {
+                    parsedIssueDate = LocalDate.parse(request.getIssueDate());
+                }
+            } catch (Exception ignored) {}
+
+            Certificate cert = Certificate.builder()
+                    .certificateNumber(request.getCertificateNumber())
+                    .issuingAuthority(request.getIssuingAuthority())
+                    .issueDate(parsedIssueDate)
+                    .fileName(fileName)
+                    .fileUrl(url)
+                    .verified(false)
+                    .uploadedAt(LocalDateTime.now())
+                    .gem(savedGem)
+                    .build();
+
+            certificateRepo.save(cert);
+
+            if (savedGem.getCertificates() == null) savedGem.setCertificates(new ArrayList<>());
+            savedGem.getCertificates().add(cert);
+        }
+
+        return mapToDto(savedGem);
     }
+
 
     @Override
     public List<GemDto> getMyGems(Long sellerId) {

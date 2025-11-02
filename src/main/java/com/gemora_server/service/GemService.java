@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface GemService {
 
-    GemDto createGem(Long sellerId, GemCreateRequest request, List<MultipartFile> images);
+    GemDto createGem(Long sellerId, GemCreateRequest request, List<MultipartFile> images,MultipartFile certificateFile);
     List<GemDto> getMyGems(Long sellerId);
     List<GemDto> getApprovedGems();
     List<GemDto> getAllGemsByStatus(String status);
