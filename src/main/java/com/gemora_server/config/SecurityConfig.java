@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()  // ✅ Public endpoints
                         .requestMatchers("/public/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/files/**").permitAll() // ✅ Backward-compat for old file URLs
                         .requestMatchers("/error", "/", "/index.html", "/favicon.ico",
                                 "/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated() // ✅ All others require authentication
