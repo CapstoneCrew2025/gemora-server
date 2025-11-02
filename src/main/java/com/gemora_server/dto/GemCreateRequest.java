@@ -17,7 +17,9 @@ public class GemCreateRequest {
     private String certificationNumber;
     private BigDecimal price;
     private ListingType listingType;
-
+    private String certificateNumber;
+    private String issuingAuthority;
+    private String issueDate;
 
 
 }
