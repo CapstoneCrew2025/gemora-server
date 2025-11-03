@@ -60,4 +60,15 @@ public class FileStorageServiceImpl implements FileStorageService {
         return (certificate ? certsLocation : gemsLocation).resolve(fileName).normalize();
     }
 
+    @Override
+    public void deleteFile(String fileName, boolean certificate) {
+        try {
+            Path filePath = (certificate ? certsLocation : gemsLocation).resolve(fileName).normalize();
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not delete file: " + fileName, e);
+        }
+    }
+
+
 }

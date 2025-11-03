@@ -12,6 +12,10 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:./uploads/");
+
+        // Backward compatibility: serve /files/** from the same uploads directory
+        registry.addResourceHandler("/files/**")
+                .addResourceLocations("file:./uploads/");
     }
 
     
