@@ -7,4 +7,6 @@ public interface FileStorageService {
     String storeGemImage(MultipartFile file);
     String storeCertificateFile(MultipartFile file);
     Path getFilePath(String fileName, boolean certificate);
+    void deleteFile(String fileName, boolean certificate);
+
 }

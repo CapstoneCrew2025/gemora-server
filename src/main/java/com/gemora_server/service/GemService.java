@@ -20,6 +20,7 @@ public interface GemService {
     // certificate-specific
     GemDto uploadCertificate(Long gemId, MultipartFile certificateFile, String certificateNumber, String issuingAuthority, String issueDate); // issueDate as ISO string
     void verifyCertificate(Long certificateId, boolean verified, String adminUsername);
+    void deleteGemAsAdmin(Long gemId, String adminUsername);
 
 
 }

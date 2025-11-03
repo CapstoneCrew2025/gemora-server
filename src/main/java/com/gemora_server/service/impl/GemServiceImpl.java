@@ -23,6 +23,7 @@ import java.time.LocalDate;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,7 +60,7 @@ public class GemServiceImpl implements GemService {
         Gem savedGem = gemRepo.save(gem);
 
         // ✅ Save images (if provided)
-        if (images != null) {
+        if (images != null && !images.isEmpty()) {
             if (savedGem.getImages() == null) savedGem.setImages(new ArrayList<>());
 
             for (MultipartFile img : images) {
@@ -78,7 +79,7 @@ public class GemServiceImpl implements GemService {
         // ✅ Save certificate if provided
         if (certificateFile != null && !certificateFile.isEmpty()) {
             String fileName = fileStorageService.storeCertificateFile(certificateFile);
-            String url = "/files/certificates/" + fileName;
+            String url = "/uploads/certificates/" + fileName;
 
             LocalDate parsedIssueDate = null;
             try {
@@ -161,7 +162,7 @@ public class GemServiceImpl implements GemService {
     public GemDto uploadCertificate(Long gemId, MultipartFile certificateFile, String certificateNumber, String issuingAuthority, String issueDate) {
         Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new RuntimeException("Gem not found"));
         String fileName = fileStorageService.storeCertificateFile(certificateFile);
-        String url = "/files/certificates/" + fileName;
+        String url = "/uploads/certificates/" + fileName;
         LocalDate parsedIssueDate = null;
         try {
             if (issueDate != null) parsedIssueDate = LocalDate.parse(issueDate);
@@ -178,6 +179,7 @@ public class GemServiceImpl implements GemService {
                 .gem(gem)
                 .build();
         certificateRepo.save(cert);
+        if (gem.getCertificates() == null) gem.setCertificates(new ArrayList<>());
         gem.getCertificates().add(cert);
         gemRepo.save(gem);
         return mapToDto(gem);
@@ -204,11 +206,37 @@ public class GemServiceImpl implements GemService {
     }
 
 
+    @Override
+    @Transactional
+    public void deleteGemAsAdmin(Long gemId, String adminUsername) {
+        Gem gem = gemRepo.findById(gemId)
+                .orElseThrow(() -> new RuntimeException("Gem not found"));
+
+        // TODO: store audit log of who deleted the gem (future enhancement)
+
+        //  Delete gem images
+        if (gem.getImages() != null && !gem.getImages().isEmpty()) {
+            gem.getImages().forEach(img -> fileStorageService.deleteFile(img.getFileName(), false));
+            gemImageRepo.deleteAll(gem.getImages());
+        }
+
+        //  Delete certificates and their files
+        if (gem.getCertificates() != null && !gem.getCertificates().isEmpty()) {
+            gem.getCertificates().forEach(cert -> fileStorageService.deleteFile(cert.getFileName(), true));
+            certificateRepo.deleteAll(gem.getCertificates());
+        }
+
+        //  Finally delete gem record
+        gemRepo.delete(gem);
+    }
+
 
     // helper mapping
     private GemDto mapToDto(Gem gem) {
-        List<String> imageUrls = gem.getImages().stream().map(GemImage::getFileUrl).collect(Collectors.toList());
-        List<CertificateDto> certs = gem.getCertificates().stream().map(c -> CertificateDto.builder()
+        List<String> imageUrls = gem.getImages() == null ? Collections.emptyList() :
+                gem.getImages().stream().map(GemImage::getFileUrl).collect(Collectors.toList());
+        List<CertificateDto> certs = gem.getCertificates() == null ? Collections.emptyList() :
+                gem.getCertificates().stream().map(c -> CertificateDto.builder()
                 .id(c.getId())
                 .certificateNumber(c.getCertificateNumber())
                 .issuingAuthority(c.getIssuingAuthority())
