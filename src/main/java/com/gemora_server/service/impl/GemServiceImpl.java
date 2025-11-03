@@ -206,6 +206,30 @@ public class GemServiceImpl implements GemService {
     }
 
 
+    @Override
+    @Transactional
+    public void deleteGemAsAdmin(Long gemId, String adminUsername) {
+        Gem gem = gemRepo.findById(gemId)
+                .orElseThrow(() -> new RuntimeException("Gem not found"));
+
+        // TODO: store audit log of who deleted the gem (future enhancement)
+
+        //  Delete gem images
+        if (gem.getImages() != null && !gem.getImages().isEmpty()) {
+            gem.getImages().forEach(img -> fileStorageService.deleteFile(img.getFileName(), false));
+            gemImageRepo.deleteAll(gem.getImages());
+        }
+
+        //  Delete certificates and their files
+        if (gem.getCertificates() != null && !gem.getCertificates().isEmpty()) {
+            gem.getCertificates().forEach(cert -> fileStorageService.deleteFile(cert.getFileName(), true));
+            certificateRepo.deleteAll(gem.getCertificates());
+        }
+
+        //  Finally delete gem record
+        gemRepo.delete(gem);
+    }
+
 
     // helper mapping
     private GemDto mapToDto(Gem gem) {

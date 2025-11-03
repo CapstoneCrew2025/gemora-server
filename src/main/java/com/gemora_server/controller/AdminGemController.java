@@ -58,6 +58,23 @@ public class AdminGemController {
         return ResponseEntity.noContent().build();
     }
 
+    // ✅ Get all approved gems (listed gems)
+    @GetMapping("/approved")
+    public ResponseEntity<List<GemDto>> getApprovedGems() {
+        List<GemDto> gems = gemService.getApprovedGems();
+        return ResponseEntity.ok(gems);
+    }
+
+    // ✅ Delete a gem by admin (force delete)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGemByAdmin(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long id
+    ) {
+        String adminUsername = jwtUtil.extractUsername(token);
+        gemService.deleteGemAsAdmin(id, adminUsername);
+        return ResponseEntity.noContent().build();
+    }
 
 
 }
