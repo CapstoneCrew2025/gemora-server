@@ -3,6 +3,7 @@ package com.gemora_server.service.impl;
 import com.gemora_server.dto.CertificateDto;
 import com.gemora_server.dto.GemCreateRequest;
 import com.gemora_server.dto.GemDto;
+import com.gemora_server.dto.GemUpdateRequestDto;
 import com.gemora_server.entity.Certificate;
 import com.gemora_server.entity.Gem;
 import com.gemora_server.entity.GemImage;
@@ -228,6 +229,81 @@ public class GemServiceImpl implements GemService {
 
         //  Finally delete gem record
         gemRepo.delete(gem);
+    }
+
+    @Override
+    @Transactional
+    public GemDto updateGem(Long gemId, Long sellerId, GemUpdateRequestDto req,
+                            List<MultipartFile> newImages, MultipartFile certificateFile) {
+
+        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new RuntimeException("Gem not found"));
+        if (!gem.getSeller().getId().equals(sellerId)) {
+            throw new RuntimeException("Not authorized to update this gem");
+        }
+
+        // Allow edits only if PENDING or REJECTED
+        if (!(gem.getStatus() == GemStatus.PENDING || gem.getStatus() == GemStatus.REJECTED)) {
+            throw new RuntimeException("Cannot edit gem after approval");
+        }
+
+        // Update basic details if provided
+        if (req.getName() != null) gem.setName(req.getName());
+        if (req.getDescription() != null) gem.setDescription(req.getDescription());
+        if (req.getCategory() != null) gem.setCategory(req.getCategory());
+        if (req.getCarat() != null) gem.setCarat(req.getCarat());
+        if (req.getOrigin() != null) gem.setOrigin(req.getOrigin());
+        if (req.getPrice() != null) gem.setPrice(req.getPrice());
+        if (req.getListingType() != null) gem.setListingType(req.getListingType());
+
+        // Remove selected images
+        if (req.getRemoveImageIds() != null) {
+            List<GemImage> imagesToRemove = gem.getImages().stream()
+                    .filter(img -> req.getRemoveImageIds().contains(img.getId()))
+                    .collect(Collectors.toList());
+
+            imagesToRemove.forEach(img -> fileStorageService.deleteFile(img.getFileName(), false));
+            gemImageRepo.deleteAll(imagesToRemove);
+            gem.getImages().removeAll(imagesToRemove);
+        }
+
+        // Add new images if provided
+        if (newImages != null) {
+            for (MultipartFile img : newImages) {
+                String fileName = fileStorageService.storeGemImage(img);
+                GemImage newImg = GemImage.builder()
+                        .fileName(fileName)
+                        .fileUrl("/uploads/gems/" + fileName)
+                        .gem(gem)
+                        .build();
+                gemImageRepo.save(newImg);
+                gem.getImages().add(newImg);
+            }
+        }
+
+        // Replace or add certificate
+        if (certificateFile != null) {
+            certificateRepo.deleteAll(gem.getCertificates());
+            String fileName = fileStorageService.storeCertificateFile(certificateFile);
+            Certificate cert = Certificate.builder()
+                    .certificateNumber(req.getCertificateNumber())
+                    .issuingAuthority(req.getIssuingAuthority())
+                    .issueDate(req.getIssueDate() != null ? LocalDate.parse(req.getIssueDate()) : null)
+                    .fileName(fileName)
+                    .fileUrl("/uploads/certificates/" + fileName)
+                    .verified(false)
+                    .uploadedAt(LocalDateTime.now())
+                    .gem(gem)
+                    .build();
+            certificateRepo.save(cert);
+            gem.setCertificates(List.of(cert));
+        }
+
+        // Reset status to PENDING so admin re-approves
+        gem.setStatus(GemStatus.PENDING);
+        gem.setUpdatedAt(LocalDateTime.now());
+
+        gemRepo.save(gem);
+        return mapToDto(gem);
     }
 
 
