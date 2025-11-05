@@ -19,14 +19,11 @@ public class Certificate {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String certificateNumber;
     private String issuingAuthority;
     private LocalDate issueDate;
-
     private String fileName;
     private String fileUrl;
-
     private Boolean verified = false;
     private String verifiedBy; // admin username or id
     private LocalDateTime uploadedAt = LocalDateTime.now();
