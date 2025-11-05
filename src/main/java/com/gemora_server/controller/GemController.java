@@ -2,6 +2,7 @@ package com.gemora_server.controller;
 
 import com.gemora_server.dto.GemCreateRequest;
 import com.gemora_server.dto.GemDto;
+import com.gemora_server.dto.GemUpdateRequestDto;
 import com.gemora_server.service.GemService;
 import com.gemora_server.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +75,19 @@ public class GemController {
         Long userId = jwtUtil.extractUserId(token);
         gemService.deleteGem(id, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/{gemId}", consumes = {"multipart/form-data"})
+    public ResponseEntity<GemDto> updateGem(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long gemId,
+            @ModelAttribute GemUpdateRequestDto request,
+            @RequestPart(value = "newImages", required = false) List<MultipartFile> newImages,
+            @RequestPart(value = "certificateFile", required = false) MultipartFile certificateFile) {
+
+        Long sellerId = jwtUtil.extractUserId(token);
+        GemDto updatedGem = gemService.updateGem(gemId, sellerId, request, newImages, certificateFile);
+        return ResponseEntity.ok(updatedGem);
     }
 
 
