@@ -10,26 +10,23 @@ import com.gemora_server.repo.BidRepo;
 import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.BidService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class BidServiceImpl implements BidService {
 
-    @Autowired
-    private BidRepo bidRepository;
+    private final BidRepo bidRepository;
 
-    @Autowired
-    private GemRepo gemRepository;
+    private final GemRepo gemRepository;
 
-    @Autowired
-    private UserRepo userRepository;
+    private final UserRepo userRepository;
 
-    @Override
     public BidResponse placeBid(BidRequest request) {
 
         Gem gem = gemRepository.findById(request.getGemId())
