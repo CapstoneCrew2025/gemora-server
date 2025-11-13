@@ -1,9 +1,13 @@
 package com.gemora_server.service;
 
-import com.gemora_server.entity.Bid;
+
+import com.gemora_server.dto.BidRequest;
+import com.gemora_server.dto.BidResponse;
+
 import java.util.List;
 
 public interface BidService {
-    Bid placeBid(Long gemId, Long userId, Double amount);
-    List<Bid> getBidsForGem(Long gemId);
+    BidResponse placeBid(BidRequest request);
+
+    List<BidResponse> getBidsForGem(Long gemId);
 }

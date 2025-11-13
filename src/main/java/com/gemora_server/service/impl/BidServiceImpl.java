@@ -1,5 +1,7 @@
 package com.gemora_server.service.impl;
 
+import com.gemora_server.dto.BidRequest;
+import com.gemora_server.dto.BidResponse;
 import com.gemora_server.entity.Bid;
 import com.gemora_server.entity.Gem;
 import com.gemora_server.entity.User;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class BidServiceImpl implements BidService {
@@ -27,9 +30,9 @@ public class BidServiceImpl implements BidService {
     private UserRepo userRepository;
 
     @Override
-    public Bid placeBid(Long gemId, Long userId, Double amount) {
+    public BidResponse placeBid(BidRequest request) {
 
-        Gem gem = gemRepository.findById(gemId)
+        Gem gem = gemRepository.findById(request.getGemId())
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
 
         if (gem.getListingType() != ListingType.AUCTION) {
@@ -41,42 +44,56 @@ public class BidServiceImpl implements BidService {
             throw new RuntimeException("Auction has ended");
         }
 
-        // Starting price = gem.price (BigDecimal)
         double startingPrice = gem.getPrice().doubleValue();
-
         Double currentHighest = (gem.getCurrentHighestBid() != null)
                 ? gem.getCurrentHighestBid()
                 : startingPrice;
 
-        if (amount <= currentHighest) {
+        if (request.getAmount() <= currentHighest) {
             throw new RuntimeException("Your bid must be higher than the current highest bid");
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // Create Bid entity
         Bid bid = Bid.builder()
                 .gem(gem)
                 .bidder(user)
-                .amount(BigDecimal.valueOf(amount))
+                .amount(BigDecimal.valueOf(request.getAmount()))
                 .placedAt(LocalDateTime.now())
                 .build();
+
         bidRepository.save(bid);
 
-        gem.setCurrentHighestBid(amount);
+        // Update highest bid in Gem
+        gem.setCurrentHighestBid(request.getAmount());
         gemRepository.save(gem);
 
-        return bid;
+        return BidResponse.builder()
+                .bidId(bid.getId())
+                .gemId(gem.getId())
+                .bidderId(user.getId())
+                .amount(bid.getAmount())
+                .placedAt(bid.getPlacedAt())
+                .build();
     }
 
     @Override
-    public List<Bid> getBidsForGem(Long gemId) {
+    public List<BidResponse> getBidsForGem(Long gemId) {
 
         Gem gem = gemRepository.findById(gemId)
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
 
-        return bidRepository.findByGemOrderByAmountDesc(gem);
+        List<Bid> bids = bidRepository.findByGemOrderByAmountDesc(gem);
+
+        return bids.stream().map(bid -> BidResponse.builder()
+                .bidId(bid.getId())
+                .gemId(bid.getGem().getId())
+                .bidderId(bid.getBidder().getId())
+                .amount(bid.getAmount())
+                .placedAt(bid.getPlacedAt())
+                .build()
+        ).collect(Collectors.toList());
     }
-
-
 }
