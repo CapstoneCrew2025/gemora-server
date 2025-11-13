@@ -57,4 +57,12 @@ public class Gem {
     @OneToMany(mappedBy = "gem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Certificate> certificates = new ArrayList<>();
 
+    @OneToMany(mappedBy = "gem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Bid> bids = new ArrayList<>();
+
+  //  private Double startingPrice;
+    private Double currentHighestBid;
+    private LocalDateTime auctionEndTime;
+
+
 }
