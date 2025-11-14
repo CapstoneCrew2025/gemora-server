@@ -10,6 +10,7 @@ import com.gemora_server.repo.BidRepo;
 import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.BidService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -22,11 +23,10 @@ import java.util.stream.Collectors;
 public class BidServiceImpl implements BidService {
 
     private final BidRepo bidRepository;
-
     private final GemRepo gemRepository;
-
     private final UserRepo userRepository;
 
+    @Transactional
     public BidResponse placeBid(BidRequest request) {
 
         Gem gem = gemRepository.findById(request.getGemId())
@@ -53,7 +53,7 @@ public class BidServiceImpl implements BidService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Create Bid entity
+
         Bid bid = Bid.builder()
                 .gem(gem)
                 .bidder(user)

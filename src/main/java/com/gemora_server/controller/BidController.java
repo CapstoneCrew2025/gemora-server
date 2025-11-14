@@ -4,7 +4,6 @@ import com.gemora_server.dto.BidRequest;
 import com.gemora_server.dto.BidResponse;
 import com.gemora_server.service.BidService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
