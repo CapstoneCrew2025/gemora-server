@@ -27,7 +27,7 @@ public class BidServiceImpl implements BidService {
     private final UserRepo userRepository;
 
     @Transactional
-    public BidResponse placeBid(BidRequest request) {
+    public BidResponse placeBid(BidRequest request , Long userId) {
 
         Gem gem = gemRepository.findById(request.getGemId())
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
@@ -50,7 +50,7 @@ public class BidServiceImpl implements BidService {
             throw new RuntimeException("Your bid must be higher than the current highest bid");
         }
 
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
 
