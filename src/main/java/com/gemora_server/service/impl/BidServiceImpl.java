@@ -13,6 +13,7 @@ import com.gemora_server.service.BidService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,7 +28,7 @@ public class BidServiceImpl implements BidService {
     private final UserRepo userRepository;
 
     @Transactional
-    public BidResponse placeBid(BidRequest request , Long userId) {
+    public BidResponse placeBid(BidRequest request, Long userId) {
 
         Gem gem = gemRepository.findById(request.getGemId())
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
@@ -83,23 +84,28 @@ public class BidServiceImpl implements BidService {
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
 
         LocalDateTime now = LocalDateTime.now();
-        final Long remainingSeconds =
-                (gem.getAuctionEndTime() != null)
-                        ? (now.isBefore(gem.getAuctionEndTime())
-                        ? java.time.Duration.between(now, gem.getAuctionEndTime()).getSeconds()
-                        : 0L)
-                        : null;
 
         List<Bid> bids = bidRepository.findByGemOrderByAmountDesc(gem);
 
-        return bids.stream().map(bid -> BidResponse.builder()
-                .bidId(bid.getId())
-                .gemId(bid.getGem().getId())
-                .bidderId(bid.getBidder().getId())
-                .amount(bid.getAmount())
-                .placedAt(bid.getPlacedAt())
-                .remainingSeconds(remainingSeconds)
-                .build()
-        ).collect(Collectors.toList());
+
+        return bids.stream().map(bid -> {
+
+            // Each bid expires 7 days after placedAt
+            LocalDateTime endTime = bid.getPlacedAt().plusDays(7);
+
+            Long remainingSeconds = now.isBefore(endTime)
+                    ? java.time.Duration.between(now, endTime).getSeconds()
+                    : 0L;
+
+            return BidResponse.builder()
+                    .bidId(bid.getId())
+                    .gemId(bid.getGem().getId())
+                    .bidderId(bid.getBidder().getId())
+                    .amount(bid.getAmount())
+                    .placedAt(bid.getPlacedAt())
+                    .remainingSeconds(remainingSeconds)
+                    .build();
+        }).collect(Collectors.toList());
     }
+
 }
