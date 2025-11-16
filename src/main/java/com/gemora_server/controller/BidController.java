@@ -1,5 +1,6 @@
 package com.gemora_server.controller;
 
+import com.gemora_server.dto.AuctionTimeResponseDto;
 import com.gemora_server.dto.BidRequestDto;
 import com.gemora_server.dto.BidResponseDto;
 import com.gemora_server.service.BidService;
@@ -27,6 +28,11 @@ public class BidController {
     @GetMapping("/gem/{gemId}")
     public List<BidResponseDto> getBids(@PathVariable Long gemId) {
         return bidService.getBidsForGem(gemId);
+    }
+
+    @GetMapping("/remaining-time/{gemId}")
+    public AuctionTimeResponseDto getRemainingTime(@PathVariable Long gemId) {
+        return bidService.getRemainingTime(gemId);
     }
 
 

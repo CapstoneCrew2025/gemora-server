@@ -1,5 +1,6 @@
 package com.gemora_server.service.impl;
 
+import com.gemora_server.dto.AuctionTimeResponseDto;
 import com.gemora_server.dto.BidRequestDto;
 import com.gemora_server.dto.BidResponseDto;
 import com.gemora_server.entity.Bid;
@@ -13,7 +14,6 @@ import com.gemora_server.service.BidService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -103,5 +103,40 @@ public class BidServiceImpl implements BidService {
 
         }).collect(Collectors.toList());
     }
+
+
+    @Override
+    public AuctionTimeResponseDto getRemainingTime(Long gemId) {
+
+        Gem gem = gemRepository.findById(gemId)
+                .orElseThrow(() -> new RuntimeException("Gem not found"));
+
+        if (gem.getAuctionEndTime() == null) {
+            throw new RuntimeException("This gem is not in auction");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime end = gem.getAuctionEndTime();
+
+        long remainingSeconds = 0;
+        boolean expired = now.isAfter(end);
+
+        if (!expired) {
+            remainingSeconds = java.time.Duration.between(now, end).getSeconds();
+        }
+
+        long days = remainingSeconds / 86400;
+        long hours = (remainingSeconds % 86400) / 3600;
+        long minutes = (remainingSeconds % 3600) / 60;
+
+        return AuctionTimeResponseDto.builder()
+                .gemId(gemId)
+                .remainingDays(days)
+                .remainingHours(hours)
+                .remainingMinutes(minutes)
+                .expired(expired)
+                .build();
+    }
+
 
 }
