@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class BidResponse {
+public class BidResponseDto {
 
     private Long bidId;
     private Long gemId;

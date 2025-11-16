@@ -1,7 +1,7 @@
 package com.gemora_server.service.impl;
 
-import com.gemora_server.dto.BidRequest;
-import com.gemora_server.dto.BidResponse;
+import com.gemora_server.dto.BidRequestDto;
+import com.gemora_server.dto.BidResponseDto;
 import com.gemora_server.entity.Bid;
 import com.gemora_server.entity.Gem;
 import com.gemora_server.entity.User;
@@ -28,7 +28,7 @@ public class BidServiceImpl implements BidService {
     private final UserRepo userRepository;
 
     @Transactional
-    public BidResponse placeBid(BidRequest request, Long userId) {
+    public BidResponseDto placeBid(BidRequestDto request, Long userId) {
 
         Gem gem = gemRepository.findById(request.getGemId())
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
@@ -68,7 +68,7 @@ public class BidServiceImpl implements BidService {
         gem.setCurrentHighestBid(request.getAmount());
         gemRepository.save(gem);
 
-        return BidResponse.builder()
+        return BidResponseDto.builder()
                 .bidId(bid.getId())
                 .gemId(gem.getId())
                 .bidderId(user.getId())
@@ -78,7 +78,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public List<BidResponse> getBidsForGem(Long gemId) {
+    public List<BidResponseDto> getBidsForGem(Long gemId) {
 
         Gem gem = gemRepository.findById(gemId)
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
@@ -92,7 +92,7 @@ public class BidServiceImpl implements BidService {
 
             long daysAgo = java.time.Duration.between(bid.getPlacedAt(), now).toDays();
 
-            return BidResponse.builder()
+            return BidResponseDto.builder()
                     .bidId(bid.getId())
                     .gemId(bid.getGem().getId())
                     .bidderId(bid.getBidder().getId())
