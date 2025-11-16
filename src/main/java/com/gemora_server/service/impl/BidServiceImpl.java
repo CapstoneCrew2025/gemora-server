@@ -82,6 +82,14 @@ public class BidServiceImpl implements BidService {
         Gem gem = gemRepository.findById(gemId)
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
 
+        LocalDateTime now = LocalDateTime.now();
+        final Long remainingSeconds =
+                (gem.getAuctionEndTime() != null)
+                        ? (now.isBefore(gem.getAuctionEndTime())
+                        ? java.time.Duration.between(now, gem.getAuctionEndTime()).getSeconds()
+                        : 0L)
+                        : null;
+
         List<Bid> bids = bidRepository.findByGemOrderByAmountDesc(gem);
 
         return bids.stream().map(bid -> BidResponse.builder()
@@ -90,6 +98,7 @@ public class BidServiceImpl implements BidService {
                 .bidderId(bid.getBidder().getId())
                 .amount(bid.getAmount())
                 .placedAt(bid.getPlacedAt())
+                .remainingSeconds(remainingSeconds)
                 .build()
         ).collect(Collectors.toList());
     }
