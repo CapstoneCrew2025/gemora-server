@@ -1,13 +1,14 @@
 package com.gemora_server.service;
 
-
-import com.gemora_server.dto.BidRequest;
-import com.gemora_server.dto.BidResponse;
-
+import com.gemora_server.dto.AuctionTimeResponseDto;
+import com.gemora_server.dto.BidRequestDto;
+import com.gemora_server.dto.BidResponseDto;
 import java.util.List;
 
 public interface BidService {
-    BidResponse placeBid(BidRequest request , Long userId);
+    BidResponseDto placeBid(BidRequestDto request , Long userId);
 
-    List<BidResponse> getBidsForGem(Long gemId);
+    List<BidResponseDto> getBidsForGem(Long gemId);
+
+    AuctionTimeResponseDto getRemainingTime(Long gemId);
 }

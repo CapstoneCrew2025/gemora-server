@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
-public class BidResponse {
+public class BidResponseDto {
 
     private Long bidId;
     private Long gemId;
     private Long bidderId;
     private BigDecimal amount;
     private LocalDateTime placedAt;
-
+    private Long daysAgo;
 
 }

@@ -43,6 +43,14 @@ public class GemServiceImpl implements GemService {
         User seller = userRepo.findById(sellerId)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
 
+        ListingType listingType =
+                request.getListingType() == null ? ListingType.SALE : request.getListingType();
+
+        LocalDateTime auctionEnd = null;
+        if (listingType == ListingType.AUCTION) {
+            auctionEnd = LocalDateTime.now().plusDays(7);
+        }
+
         Gem gem = Gem.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -55,6 +63,7 @@ public class GemServiceImpl implements GemService {
                 .status(GemStatus.PENDING)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .auctionEndTime(auctionEnd)
                 .build();
 
         Gem savedGem = gemRepo.save(gem);

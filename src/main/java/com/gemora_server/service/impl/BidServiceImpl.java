@@ -1,7 +1,8 @@
 package com.gemora_server.service.impl;
 
-import com.gemora_server.dto.BidRequest;
-import com.gemora_server.dto.BidResponse;
+import com.gemora_server.dto.AuctionTimeResponseDto;
+import com.gemora_server.dto.BidRequestDto;
+import com.gemora_server.dto.BidResponseDto;
 import com.gemora_server.entity.Bid;
 import com.gemora_server.entity.Gem;
 import com.gemora_server.entity.User;
@@ -27,7 +28,7 @@ public class BidServiceImpl implements BidService {
     private final UserRepo userRepository;
 
     @Transactional
-    public BidResponse placeBid(BidRequest request , Long userId) {
+    public BidResponseDto placeBid(BidRequestDto request, Long userId) {
 
         Gem gem = gemRepository.findById(request.getGemId())
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
@@ -67,7 +68,7 @@ public class BidServiceImpl implements BidService {
         gem.setCurrentHighestBid(request.getAmount());
         gemRepository.save(gem);
 
-        return BidResponse.builder()
+        return BidResponseDto.builder()
                 .bidId(bid.getId())
                 .gemId(gem.getId())
                 .bidderId(user.getId())
@@ -77,20 +78,65 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public List<BidResponse> getBidsForGem(Long gemId) {
+    public List<BidResponseDto> getBidsForGem(Long gemId) {
 
         Gem gem = gemRepository.findById(gemId)
                 .orElseThrow(() -> new RuntimeException("Gem not found"));
 
+        LocalDateTime now = LocalDateTime.now();
+
         List<Bid> bids = bidRepository.findByGemOrderByAmountDesc(gem);
 
-        return bids.stream().map(bid -> BidResponse.builder()
-                .bidId(bid.getId())
-                .gemId(bid.getGem().getId())
-                .bidderId(bid.getBidder().getId())
-                .amount(bid.getAmount())
-                .placedAt(bid.getPlacedAt())
-                .build()
-        ).collect(Collectors.toList());
+
+        return bids.stream().map(bid -> {
+
+            long daysAgo = java.time.Duration.between(bid.getPlacedAt(), now).toDays();
+
+            return BidResponseDto.builder()
+                    .bidId(bid.getId())
+                    .gemId(bid.getGem().getId())
+                    .bidderId(bid.getBidder().getId())
+                    .amount(bid.getAmount())
+                    .placedAt(bid.getPlacedAt())
+                    .daysAgo(daysAgo) // <-- Add this field in your DTO
+                    .build();
+
+        }).collect(Collectors.toList());
     }
+
+
+    @Override
+    public AuctionTimeResponseDto getRemainingTime(Long gemId) {
+
+        Gem gem = gemRepository.findById(gemId)
+                .orElseThrow(() -> new RuntimeException("Gem not found"));
+
+        if (gem.getAuctionEndTime() == null) {
+            throw new RuntimeException("This gem is not in auction");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime end = gem.getAuctionEndTime();
+
+        long remainingSeconds = 0;
+        boolean expired = now.isAfter(end);
+
+        if (!expired) {
+            remainingSeconds = java.time.Duration.between(now, end).getSeconds();
+        }
+
+        long days = remainingSeconds / 86400;
+        long hours = (remainingSeconds % 86400) / 3600;
+        long minutes = (remainingSeconds % 3600) / 60;
+
+        return AuctionTimeResponseDto.builder()
+                .gemId(gemId)
+                .remainingDays(days)
+                .remainingHours(hours)
+                .remainingMinutes(minutes)
+                .expired(expired)
+                .build();
+    }
+
+
 }
