@@ -14,6 +14,6 @@ public class BidResponse {
     private Long bidderId;
     private BigDecimal amount;
     private LocalDateTime placedAt;
-    private Long remainingSeconds;
+    private Long daysAgo;
 
 }

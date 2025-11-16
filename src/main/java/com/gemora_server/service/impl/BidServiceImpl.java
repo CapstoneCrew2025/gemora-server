@@ -90,12 +90,7 @@ public class BidServiceImpl implements BidService {
 
         return bids.stream().map(bid -> {
 
-            // Each bid expires 7 days after placedAt
-            LocalDateTime endTime = bid.getPlacedAt().plusDays(7);
-
-            Long remainingSeconds = now.isBefore(endTime)
-                    ? java.time.Duration.between(now, endTime).getSeconds()
-                    : 0L;
+            long daysAgo = java.time.Duration.between(bid.getPlacedAt(), now).toDays();
 
             return BidResponse.builder()
                     .bidId(bid.getId())
@@ -103,8 +98,9 @@ public class BidServiceImpl implements BidService {
                     .bidderId(bid.getBidder().getId())
                     .amount(bid.getAmount())
                     .placedAt(bid.getPlacedAt())
-                    .remainingSeconds(remainingSeconds)
+                    .daysAgo(daysAgo) // <-- Add this field in your DTO
                     .build();
+
         }).collect(Collectors.toList());
     }
 
