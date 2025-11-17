@@ -35,15 +35,4 @@ public class ChatWebSocketController {
         messagingTemplate.convertAndSend(destination, response);
     }
 
-
-    @GetMapping("/history")
-    public ResponseEntity<List<ChatMessageResponseDto>> getChatHistory(
-            @RequestParam Long user1Id,
-            @RequestParam Long user2Id
-    ) {
-        List<ChatMessageResponseDto> history = chatMessageService.getChatHistory(user1Id, user2Id);
-        return ResponseEntity.ok(history);
-    }
-
-
 }
