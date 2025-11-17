@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface ChatMessageService {
 
-    ChatMessageResponseDto saveMessage(ChatMessageRequestDto request);
+    ChatMessageResponseDto saveMessage(ChatMessageRequestDto request,Long senderId);
 
     List<ChatMessageResponseDto> getChatHistory(Long user1Id, Long user2Id);
 
