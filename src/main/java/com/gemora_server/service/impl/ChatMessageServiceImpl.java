@@ -36,13 +36,18 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return toResponse(saved);
     }
 
-    public List<ChatMessageResponseDto> getChatHistory(Long user1Id, Long user2Id) {
-        String roomId = generateRoomId(user1Id, user2Id);
+    public List<ChatMessageResponseDto> getChatHistory(Long buyerId, Long sellerId) {
+
+        // Generate unique roomId for the chat between buyer & seller
+        String roomId = generateRoomId(buyerId, sellerId);
+
+        // Fetch messages ordered by sent time ascending
         return chatMessageRepository.findByRoomIdOrderBySentAtAsc(roomId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
 
     private ChatMessageResponseDto toResponse(ChatMessage msg) {
         return ChatMessageResponseDto.builder()
