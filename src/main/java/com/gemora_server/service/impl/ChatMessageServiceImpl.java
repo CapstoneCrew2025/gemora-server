@@ -18,10 +18,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageRepo chatMessageRepository;
 
-    public ChatMessageResponseDto saveMessage(ChatMessageRequestDto request) {
-        String roomId = generateRoomId(request.getSenderId(), request.getReceiverId());
+    public ChatMessageResponseDto saveMessage(ChatMessageRequestDto request, Long senderId) {
+
+        String roomId = generateRoomId(senderId, request.getReceiverId());
+
         ChatMessage chatMessage = ChatMessage.builder()
-                .senderId(request.getSenderId())
+                .senderId(senderId)
                 .receiverId(request.getReceiverId())
                 .content(request.getContent())
                 .sentAt(LocalDateTime.now())
