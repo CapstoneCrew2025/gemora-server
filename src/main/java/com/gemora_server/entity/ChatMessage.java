@@ -41,4 +41,8 @@ public class ChatMessage {
     // Room ID so both buyer & seller see same channel
     @Column(nullable = false)
     private String roomId;
+
+    @Column(nullable = false)
+    private Long gemId;
+
 }
