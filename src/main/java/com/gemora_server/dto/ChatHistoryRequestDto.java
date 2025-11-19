@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class ChatHistoryRequestDto {
-    private Long sellerId;
+    private Long otherUserId;
     private Long gemId;
 
 }

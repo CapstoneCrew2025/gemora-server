@@ -48,15 +48,15 @@ public class ChatRestController {
             }
 
             String token = authHeader.substring(7);
-            Long buyerId = jwtUtil.extractUserId(token);
-            Long sellerId = request.getSellerId();
+            Long userId = jwtUtil.extractUserId(token);
+            Long otherUserId = request.getOtherUserId();
 
-            if (sellerId == null) {
-                throw new RuntimeException("sellerId is required.");
+            if (otherUserId == null) {
+                throw new RuntimeException("otherUserId is required.");
             }
 
             List<ChatMessageResponseDto> history =
-                    chatMessageService.getChatHistory(buyerId, sellerId,request.getGemId());
+                    chatMessageService.getChatHistory(userId, otherUserId,request.getGemId());
 
             return ResponseEntity.ok(history);
         }
