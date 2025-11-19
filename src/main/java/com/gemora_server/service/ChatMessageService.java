@@ -8,8 +8,8 @@ public interface ChatMessageService {
 
     ChatMessageResponseDto saveMessage(ChatMessageRequestDto request,Long senderId);
 
-    List<ChatMessageResponseDto> getChatHistory(Long user1Id, Long user2Id);
+    List<ChatMessageResponseDto> getChatHistory(Long user1Id, Long user2Id,Long gemId);
 
-    String generateRoomId(Long user1, Long user2);
+    String generateRoomId(Long user1, Long user2,Long gemId );
 
 }
