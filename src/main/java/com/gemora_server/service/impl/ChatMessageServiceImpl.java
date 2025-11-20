@@ -2,6 +2,7 @@ package com.gemora_server.service.impl;
 
 import com.gemora_server.dto.ChatMessageRequestDto;
 import com.gemora_server.dto.ChatMessageResponseDto;
+import com.gemora_server.dto.InboxItemDto;
 import com.gemora_server.entity.ChatMessage;
 import com.gemora_server.enums.ChatMessageStatus;
 import com.gemora_server.repo.ChatMessageRepo;
@@ -10,6 +11,7 @@ import com.gemora_server.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.gemora_server.entity.User;
@@ -84,6 +86,49 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return u1 + "_" + u2 + "_" + gemId;
     }
 
+
+
+    public List<InboxItemDto> getInbox(Long userId) {
+        List<Object[]> rooms = chatMessageRepository.findRoomIdAndLastAtByUser(userId);
+
+        List<InboxItemDto> inbox = new ArrayList<>();
+
+        for (Object[] row : rooms) {
+            String roomId = (String) row[0];
+
+            ChatMessage lastMsg = chatMessageRepository.findTopByRoomIdOrderBySentAtDesc(roomId);
+            if (lastMsg == null) continue;
+
+            Long gemId = lastMsg.getGemId();
+
+            Long otherUserId = lastMsg.getSenderId().equals(userId) ? lastMsg.getReceiverId() : lastMsg.getSenderId();
+
+            String otherUserName = userRepo.findById(otherUserId)
+                    .map(User::getName)
+                    .orElse("Unknown");
+
+            long unreadCount = 0L;
+            try {
+                unreadCount = chatMessageRepository.countByRoomIdAndReceiverIdAndStatus(roomId, userId, ChatMessageStatus.SENT);
+
+            } catch (Exception e) {
+                unreadCount = 0L;
+            }
+            InboxItemDto item = InboxItemDto.builder()
+                    .roomId(roomId)
+                    .otherUserId(otherUserId)
+                    .otherUserName(otherUserName)
+                    .gemId(gemId)
+                    .lastMessage(lastMsg.getContent())
+                    .lastSentAt(lastMsg.getSentAt())
+                    .unreadCount(unreadCount)
+                    .build();
+
+            inbox.add(item);
+        }
+
+        return inbox;
+    }
 
 
 }
