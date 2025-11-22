@@ -4,8 +4,10 @@ import com.gemora_server.dto.ChatMessageRequestDto;
 import com.gemora_server.dto.ChatMessageResponseDto;
 import com.gemora_server.dto.InboxItemDto;
 import com.gemora_server.entity.ChatMessage;
+import com.gemora_server.entity.Gem;
 import com.gemora_server.enums.ChatMessageStatus;
 import com.gemora_server.repo.ChatMessageRepo;
+import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageRepo chatMessageRepository;
     private final UserRepo userRepo;
+    private final GemRepo gemRepo ;
 
     public ChatMessageResponseDto saveMessage(ChatMessageRequestDto request, Long senderId ) {
 
@@ -101,6 +104,10 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
             Long gemId = lastMsg.getGemId();
 
+            String gemName = gemRepo.findById(gemId)
+                    .map(Gem::getName) // use your correct gem name field
+                    .orElse("Unknown Gem");
+
             Long otherUserId = lastMsg.getSenderId().equals(userId) ? lastMsg.getReceiverId() : lastMsg.getSenderId();
 
             String otherUserName = userRepo.findById(otherUserId)
@@ -117,7 +124,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             InboxItemDto item = InboxItemDto.builder()
                     .roomId(roomId)
                     .otherUserId(otherUserId)
-                    .otherUserName(otherUserName)
+                    .gemName(gemName)
                     .gemId(gemId)
                     .lastMessage(lastMsg.getContent())
                     .lastSentAt(lastMsg.getSentAt())
