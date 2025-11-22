@@ -10,7 +10,7 @@ public class InboxItemDto {
 
     private String roomId;
     private Long otherUserId;
-    private String otherUserName;
+    private String gemName;
     private Long gemId;
     private String lastMessage;
     private LocalDateTime lastSentAt;
