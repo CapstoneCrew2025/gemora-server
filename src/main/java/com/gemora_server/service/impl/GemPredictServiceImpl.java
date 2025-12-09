@@ -52,7 +52,12 @@ public class GemPredictServiceImpl implements GemPredictService {
 
             return response.getBody();
         } catch (Exception ex) {
-            throw new RuntimeException("Error calling Flask API: " + ex.getMessage());
+            PredictResponseDto error = new PredictResponseDto();
+            error.setSuccess(false);
+            error.setConfidence(0);
+            error.setGem_type(null);
+            error.setError("AI model is unavailable. Please try again later.");
+            return error;
         }
     }
 
