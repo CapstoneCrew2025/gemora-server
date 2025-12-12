@@ -3,6 +3,9 @@ package com.gemora_server.service.impl;
 import com.gemora_server.dto.ProfileUpdateDto;
 import com.gemora_server.dto.UserProfileDto;
 import com.gemora_server.entity.User;
+import com.gemora_server.entity.Gem;
+import com.gemora_server.enums.GemStatus;
+import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.ProfileService;
 import com.gemora_server.util.JwtUtil;
@@ -20,6 +23,8 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final UserRepo userRepo;
     private final JwtUtil jwtUtil;
+    private final GemRepo gemRepo;
+
 
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "users" + File.separator;
 
@@ -79,6 +84,34 @@ public class ProfileServiceImpl implements ProfileService {
         userRepo.save(user);
         return mapToDto(user);
     }
+
+
+    @Override
+    public String markGemAsSold(String token, Long gemId) {
+
+
+        if (token.startsWith("Bearer ")) token = token.substring(7);
+
+        if (!jwtUtil.validateToken(token)) {
+            throw new RuntimeException("Invalid or expired token!");
+        }
+        Long userId = jwtUtil.extractUserId(token);
+
+        User seller = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Seller not found!"));
+
+        Gem gem = gemRepo.findById(gemId)
+                .orElseThrow(() -> new RuntimeException("Gem not found!"));
+
+        if (!gem.getSeller().getId().equals(seller.getId())) {
+            throw new RuntimeException("You are not authorized to update this gem!");
+        }
+        gem.setStatus(GemStatus.SOLD);
+        gemRepo.save(gem);
+
+        return "Gem marked as SOLD successfully.";
+    }
+
 
     private String saveFile(MultipartFile file, String prefix) {
         if (file == null || file.isEmpty()) return null;
