@@ -7,4 +7,5 @@ public interface ProfileService {
 
     UserProfileDto getUserProfile(String token);
     UserProfileDto updateUserProfile(String token, ProfileUpdateDto request);
+    String markGemAsSold(String token, Long gemId);
 }

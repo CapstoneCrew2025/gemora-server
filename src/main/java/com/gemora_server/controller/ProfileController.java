@@ -37,4 +37,14 @@ public class ProfileController {
         return ResponseEntity.ok(updatedProfile);
     }
 
+    @PutMapping("/mark-sold/{gemId}")
+    public ResponseEntity<String> markGemAsSold(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long gemId
+    ) {
+        String response = profileService.markGemAsSold(token, gemId);
+        return ResponseEntity.ok(response);
+    }
+
+
 }
