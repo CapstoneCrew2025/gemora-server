@@ -5,7 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -19,27 +21,37 @@ public class GeminiChatServiceImpl implements GeminiChatService {
     @Value("${gemini.api.url}")
     private String apiUrl;
 
-    private final WebClient webClient = WebClient.create();
+    @Value("${gemini.system.instruction}")
+    private String systemInstruction;
 
+    private final WebClient geminiClient;
+
+    @Override
     public String askGemini(String userMessage) {
 
         Map<String, Object> requestBody = Map.of(
-                "contents", new Object[]{
+                "contents", List.of(
                         Map.of(
-                                "parts", new Object[]{
+                                "parts", List.of(
+                                        Map.of("text", systemInstruction)
+                                )
+                        ),
+                        Map.of(
+                                "parts", List.of(
                                         Map.of("text", userMessage)
-                                }
+                                )
                         )
-                }
+                )
         );
 
-        return webClient.post()
+        return geminiClient.post()
                 .uri(apiUrl + "?key=" + apiKey)
-                .header("Content-Type", "application/json")
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
-                .block(); // blocking is OK here (REST API)
+                .onErrorResume(err -> Mono.just("Error: " + err.getMessage()))
+                .block();
     }
+
 
 }

@@ -17,13 +17,17 @@ public class GeminiChatController {
 
     private final GeminiChatService geminiChatService;
 
+
     @PostMapping("/ask")
     public ResponseEntity<?> askGemini(@RequestBody Map<String, String> payload) {
+
+        if (!payload.containsKey("message")) {
+            return ResponseEntity.badRequest().body("Missing 'message' field");
+        }
         String userMessage = payload.get("message");
         String response = geminiChatService.askGemini(userMessage);
+
         return ResponseEntity.ok(response);
     }
-
-
 
 }
