@@ -1,12 +1,12 @@
 package com.gemora_server.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gemora_server.service.GeminiChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-
 import java.util.List;
 import java.util.Map;
 
@@ -44,14 +44,32 @@ public class GeminiChatServiceImpl implements GeminiChatService {
                 )
         );
 
-        return geminiClient.post()
+        String rawResponse = geminiClient.post()
                 .uri(apiUrl + "?key=" + apiKey)
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
-                .onErrorResume(err -> Mono.just("Error: " + err.getMessage()))
                 .block();
-    }
 
+        try {
+            // Parse Gemini response
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode json = mapper.readTree(rawResponse);
+
+            String text = json
+                    .path("candidates")
+                    .get(0)
+                    .path("content")
+                    .path("parts")
+                    .get(0)
+                    .path("text")
+                    .asText("");
+
+            return text.isEmpty() ? "No response from model" : text;
+
+        } catch (Exception e) {
+            return "Error parsing response: " + e.getMessage();
+        }
+    }
 
 }

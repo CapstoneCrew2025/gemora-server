@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import com.gemora_server.entity.User;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
@@ -57,6 +58,21 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public void markAsRead(Long userId, Long otherUserId, Long gemId) {
+
+        String roomId = generateRoomId(userId, otherUserId, gemId);
+
+        chatMessageRepository.markMessagesAsRead(
+                roomId,
+                userId,
+                ChatMessageStatus.SENT,
+                ChatMessageStatus.READ
+        );
+    }
+
 
 
     private ChatMessageResponseDto toResponse(ChatMessage msg) {

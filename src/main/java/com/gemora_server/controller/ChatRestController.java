@@ -78,4 +78,25 @@ public class ChatRestController {
         return ResponseEntity.ok(inbox);
     }
 
+
+    @PostMapping("/mark-as-read")
+    public ResponseEntity<Void> markAsRead(
+            @RequestParam Long otherUserId,
+            @RequestParam Long gemId,
+            HttpServletRequest httpRequest
+    ) {
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Missing or invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        Long userId = jwtUtil.extractUserId(token);
+
+        chatMessageService.markAsRead(userId, otherUserId, gemId);
+
+        return ResponseEntity.ok().build();
+    }
+
+
 }

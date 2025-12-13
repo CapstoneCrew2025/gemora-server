@@ -16,4 +16,6 @@ public interface ChatMessageService {
 
     List<InboxItemDto> getInbox(Long userId);
 
+    void markAsRead(Long userId, Long otherUserId, Long gemId);
+
 }

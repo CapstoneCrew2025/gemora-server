@@ -3,6 +3,7 @@ package com.gemora_server.repo;
 import com.gemora_server.entity.ChatMessage;
 import com.gemora_server.enums.ChatMessageStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,4 +26,21 @@ public interface ChatMessageRepo extends JpaRepository<ChatMessage, Long> {
     ChatMessage findTopByRoomIdOrderBySentAtDesc(String roomId);
 
     Long countByRoomIdAndReceiverIdAndStatus(String roomId, Long receiverId, ChatMessageStatus status);
+
+    @Modifying
+    @Query("""
+        UPDATE ChatMessage m
+        SET m.status = :status
+        WHERE m.roomId = :roomId
+          AND m.receiverId = :receiverId
+          AND m.status = :currentStatus
+    """)
+    int markMessagesAsRead(
+            @Param("roomId") String roomId,
+            @Param("receiverId") Long receiverId,
+            @Param("currentStatus") ChatMessageStatus currentStatus,
+            @Param("status") ChatMessageStatus status
+    );
+
+
 }
