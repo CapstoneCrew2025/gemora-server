@@ -99,4 +99,27 @@ public class ChatRestController {
     }
 
 
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteChat(
+            @RequestParam Long otherUserId,
+            @RequestParam Long gemId,
+            HttpServletRequest httpRequest
+    ) {
+
+        String authHeader = httpRequest.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new RuntimeException("Missing or invalid Authorization header");
+        }
+
+        String token = authHeader.substring(7);
+        Long userId = jwtUtil.extractUserId(token);
+
+        chatMessageService.deleteChat(userId, otherUserId, gemId);
+
+        return ResponseEntity.ok().build();
+    }
+
+
+
+
 }

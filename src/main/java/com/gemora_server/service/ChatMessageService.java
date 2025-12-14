@@ -18,4 +18,5 @@ public interface ChatMessageService {
 
     void markAsRead(Long userId, Long otherUserId, Long gemId);
 
+    void deleteChat(Long userId, Long otherUserId, Long gemId);
 }

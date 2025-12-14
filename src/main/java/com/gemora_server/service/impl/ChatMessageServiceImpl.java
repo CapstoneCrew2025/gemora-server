@@ -47,17 +47,17 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         return toResponse(saved);
     }
 
-    public List<ChatMessageResponseDto> getChatHistory(Long buyerId, Long sellerId,Long gemId) {
+    public List<ChatMessageResponseDto> getChatHistory(Long userId, Long otherUserId, Long gemId) {
 
-        // Generate unique roomId for the chat between buyer & seller
-        String roomId = generateRoomId(buyerId, sellerId,gemId);
+        String roomId = generateRoomId(userId, otherUserId, gemId);
 
-        // Fetch messages ordered by sent time ascending
-        return chatMessageRepository.findByRoomIdOrderBySentAtAsc(roomId)
+        return chatMessageRepository
+                .findChatHistoryForUser(roomId, userId)
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
     }
+
 
     @Override
     @Transactional
@@ -106,42 +106,61 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
 
+    @Override
+    @Transactional
+    public void deleteChat(Long userId, Long otherUserId, Long gemId) {
+
+        String roomId = generateRoomId(userId, otherUserId, gemId);
+
+        // Delete messages sent by user
+        chatMessageRepository.deleteForSender(roomId, userId);
+
+        // Delete messages received by user
+        chatMessageRepository.deleteForReceiver(roomId, userId);
+    }
+
 
     public List<InboxItemDto> getInbox(Long userId) {
-        List<Object[]> rooms = chatMessageRepository.findRoomIdAndLastAtByUser(userId);
 
+        List<Object[]> rooms = chatMessageRepository.findRoomIdAndLastAtByUser(userId);
         List<InboxItemDto> inbox = new ArrayList<>();
 
         for (Object[] row : rooms) {
+
             String roomId = (String) row[0];
 
-            ChatMessage lastMsg = chatMessageRepository.findTopByRoomIdOrderBySentAtDesc(roomId);
-            if (lastMsg == null) continue;
+            // 🔥 Get last visible message (not deleted)
+            List<ChatMessage> messages =
+                    chatMessageRepository.findLastVisibleMessage(roomId, userId);
+
+            if (messages.isEmpty()) {
+                // User deleted entire chat → DO NOT show in inbox
+                continue;
+            }
+
+            ChatMessage lastMsg = messages.get(0);
 
             Long gemId = lastMsg.getGemId();
-
             String gemName = gemRepo.findById(gemId)
-                    .map(Gem::getName) // use your correct gem name field
+                    .map(Gem::getName)
                     .orElse("Unknown Gem");
 
-            Long otherUserId = lastMsg.getSenderId().equals(userId) ? lastMsg.getReceiverId() : lastMsg.getSenderId();
+            Long otherUserId =
+                    lastMsg.getSenderId().equals(userId)
+                            ? lastMsg.getReceiverId()
+                            : lastMsg.getSenderId();
 
-            String otherUserName = userRepo.findById(otherUserId)
-                    .map(User::getName)
-                    .orElse("Unknown");
+            long unreadCount = chatMessageRepository.countUnreadForUser(
+                    roomId,
+                    userId,
+                    ChatMessageStatus.SENT
+            );
 
-            long unreadCount = 0L;
-            try {
-                unreadCount = chatMessageRepository.countByRoomIdAndReceiverIdAndStatus(roomId, userId, ChatMessageStatus.SENT);
-
-            } catch (Exception e) {
-                unreadCount = 0L;
-            }
             InboxItemDto item = InboxItemDto.builder()
                     .roomId(roomId)
                     .otherUserId(otherUserId)
-                    .gemName(gemName)
                     .gemId(gemId)
+                    .gemName(gemName)
                     .lastMessage(lastMsg.getContent())
                     .lastSentAt(lastMsg.getSentAt())
                     .unreadCount(unreadCount)

@@ -45,4 +45,12 @@ public class ChatMessage {
     @Column(nullable = false)
     private Long gemId;
 
+    @Column(nullable = false)
+    private boolean deletedBySender = false;
+
+    @Column(nullable = false)
+    private boolean deletedByReceiver = false;
+
+
+
 }
