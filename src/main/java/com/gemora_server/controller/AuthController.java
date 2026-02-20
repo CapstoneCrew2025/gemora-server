@@ -1,8 +1,6 @@
 package com.gemora_server.controller;
 
-import com.gemora_server.dto.LoginRequestDto;
-import com.gemora_server.dto.LoginResponseDto;
-import com.gemora_server.dto.RegisterResponseDto;
+import com.gemora_server.dto.*;
 import com.gemora_server.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -49,4 +47,32 @@ public class AuthController {
             );
         }
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(
+            @RequestBody ForgotPasswordRequestDto request) {
+
+        try {
+            userService.sendForgotPasswordOtp(request);
+            return ResponseEntity.ok(
+                    new CommonResponseDto("OTP sent to registered email")
+            );
+        } catch (RuntimeException ex) {
+            return ResponseEntity
+                    .status(404)
+                    .body(new CommonResponseDto(ex.getMessage()));
+        }
+    }
+
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<CommonResponseDto> resetPassword(
+            @RequestBody VerifyOtpAndResetPasswordDto request) {
+
+        userService.verifyOtpAndResetPassword(request);
+        return ResponseEntity.ok(
+                new CommonResponseDto("Password reset successful")
+        );
+    }
+
 }

@@ -1,8 +1,6 @@
 package com.gemora_server.service;
 
-import com.gemora_server.dto.LoginRequestDto;
-import com.gemora_server.dto.LoginResponseDto;
-import com.gemora_server.dto.RegisterResponseDto;
+import com.gemora_server.dto.*;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface AuthService {
@@ -12,5 +10,7 @@ public interface AuthService {
 
     LoginResponseDto loginUser(LoginRequestDto request);
 
+    void sendForgotPasswordOtp(ForgotPasswordRequestDto request);
 
+    void verifyOtpAndResetPassword(VerifyOtpAndResetPasswordDto request);
 }
