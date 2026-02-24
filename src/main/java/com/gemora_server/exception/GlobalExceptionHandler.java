@@ -22,7 +22,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, ex.getStatus());
     }
 
-    // Handle validation errors
     @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(
             org.springframework.web.bind.MethodArgumentNotValidException ex) {
@@ -37,7 +36,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-    // Catch-all (fallback)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
 
