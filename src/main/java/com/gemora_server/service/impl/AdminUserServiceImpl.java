@@ -3,6 +3,7 @@ package com.gemora_server.service.impl;
 import com.gemora_server.dto.UserAdminViewDto;
 import com.gemora_server.dto.UserUpdateDto;
 import com.gemora_server.entity.User;
+import com.gemora_server.exception.ResourceNotFoundException;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.AdminUserService;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +28,13 @@ public class AdminUserServiceImpl implements AdminUserService {
     public UserAdminViewDto getUserById(Long userId) {
         return userRepo.findById(userId)
                 .map(this::toDto)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
     public UserAdminViewDto updateUser(Long userId, UserUpdateDto updateDto) {
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (updateDto.getName() != null) user.setName(updateDto.getName());
         if (updateDto.getContactNumber() != null) user.setContactNumber(updateDto.getContactNumber());
@@ -46,7 +47,7 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     public void deleteUser(Long userId) {
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userRepo.delete(user);
     }
 

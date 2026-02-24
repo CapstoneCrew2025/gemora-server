@@ -7,6 +7,8 @@ import com.gemora_server.entity.Bid;
 import com.gemora_server.entity.Gem;
 import com.gemora_server.entity.User;
 import com.gemora_server.enums.ListingType;
+import com.gemora_server.exception.BusinessException;
+import com.gemora_server.exception.ResourceNotFoundException;
 import com.gemora_server.repo.BidRepo;
 import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
@@ -31,15 +33,15 @@ public class BidServiceImpl implements BidService {
     public BidResponseDto placeBid(BidRequestDto request, Long userId) {
 
         Gem gem = gemRepository.findById(request.getGemId())
-                .orElseThrow(() -> new RuntimeException("Gem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
 
         if (gem.getListingType() != ListingType.AUCTION) {
-            throw new RuntimeException("This gem is not available for auction");
+            throw new BusinessException("This gem is not available for auction");
         }
 
         if (gem.getAuctionEndTime() != null &&
                 gem.getAuctionEndTime().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Auction has ended");
+            throw new BusinessException("Auction has ended");
         }
 
         double startingPrice = gem.getPrice().doubleValue();
@@ -48,7 +50,7 @@ public class BidServiceImpl implements BidService {
                 : startingPrice;
 
         if (request.getAmount() <= currentHighest) {
-            throw new RuntimeException("Your bid must be higher than the current highest bid");
+            throw new BusinessException("Your bid must be higher than the current highest bid");
         }
 
         User user = userRepository.findById(userId)
@@ -81,7 +83,7 @@ public class BidServiceImpl implements BidService {
     public List<BidResponseDto> getBidsForGem(Long gemId) {
 
         Gem gem = gemRepository.findById(gemId)
-                .orElseThrow(() -> new RuntimeException("Gem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -109,10 +111,10 @@ public class BidServiceImpl implements BidService {
     public AuctionTimeResponseDto getRemainingTime(Long gemId) {
 
         Gem gem = gemRepository.findById(gemId)
-                .orElseThrow(() -> new RuntimeException("Gem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
 
         if (gem.getAuctionEndTime() == null) {
-            throw new RuntimeException("This gem is not in auction");
+            throw new BusinessException("This gem is not in auction");
         }
 
         LocalDateTime now = LocalDateTime.now();

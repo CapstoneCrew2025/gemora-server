@@ -5,6 +5,8 @@ import com.gemora_server.dto.UserProfileDto;
 import com.gemora_server.entity.User;
 import com.gemora_server.entity.Gem;
 import com.gemora_server.enums.GemStatus;
+import com.gemora_server.exception.BusinessException;
+import com.gemora_server.exception.ResourceNotFoundException;
 import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.ProfileService;
@@ -36,14 +38,14 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         if (!jwtUtil.validateToken(token)) {
-            throw new RuntimeException("Invalid or expired token!");
+            throw new BusinessException("Invalid or expired token!");
         }
 
 
         Long userId = jwtUtil.extractUserId(token);
 
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found!"));
 
         return mapToDto(user);
     }
@@ -53,13 +55,13 @@ public class ProfileServiceImpl implements ProfileService {
         if (token.startsWith("Bearer ")) token = token.substring(7);
 
         if (!jwtUtil.validateToken(token)) {
-            throw new RuntimeException("Invalid or expired token!");
+            throw new BusinessException("Invalid or expired token!");
         }
 
         Long userId = jwtUtil.extractUserId(token);
 
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found!"));
 
         // Update name/contact
         if (request.getName() != null && !request.getName().isEmpty()) {
@@ -93,18 +95,18 @@ public class ProfileServiceImpl implements ProfileService {
         if (token.startsWith("Bearer ")) token = token.substring(7);
 
         if (!jwtUtil.validateToken(token)) {
-            throw new RuntimeException("Invalid or expired token!");
+            throw new BusinessException("Invalid or expired token!");
         }
         Long userId = jwtUtil.extractUserId(token);
 
         User seller = userRepo.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Seller not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found!"));
 
         Gem gem = gemRepo.findById(gemId)
-                .orElseThrow(() -> new RuntimeException("Gem not found!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gem not found!"));
 
         if (!gem.getSeller().getId().equals(seller.getId())) {
-            throw new RuntimeException("You are not authorized to update this gem!");
+            throw new BusinessException("You are not authorized to update this gem!");
         }
         gem.setStatus(GemStatus.SOLD);
         gemRepo.save(gem);
@@ -130,7 +132,7 @@ public class ProfileServiceImpl implements ProfileService {
             String relativePath = "uploads/users/" + fileName;
             return "http://192.168.8.101:8080/" + relativePath.replace("\\", "/");
         } catch (IOException e) {
-            throw new RuntimeException("File upload failed: " + e.getMessage());
+            throw new BusinessException("File upload failed: " + e.getMessage());
         }
     }
 
