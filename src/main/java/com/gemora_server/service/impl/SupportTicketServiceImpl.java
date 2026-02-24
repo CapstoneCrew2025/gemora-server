@@ -5,6 +5,7 @@ import com.gemora_server.dto.TicketReplyDto;
 import com.gemora_server.dto.TicketResponseDto;
 import com.gemora_server.entity.SupportTicket;
 import com.gemora_server.enums.TicketStatus;
+import com.gemora_server.exception.ResourceNotFoundException;
 import com.gemora_server.repo.SupportTicketRepo;
 import com.gemora_server.service.SupportTicketService;
 import com.gemora_server.util.JwtUtil;
@@ -62,7 +63,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     public void replyToTicket(Long ticketId, TicketReplyDto dto) {
 
         SupportTicket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new RuntimeException("Ticket not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
 
         ticket.setAdminReply(dto.getAdminReply());
         ticket.setStatus(dto.getStatus());

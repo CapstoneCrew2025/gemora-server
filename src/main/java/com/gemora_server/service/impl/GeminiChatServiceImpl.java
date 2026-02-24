@@ -2,11 +2,13 @@ package com.gemora_server.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gemora_server.exception.BusinessException;
 import com.gemora_server.service.GeminiChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +30,10 @@ public class GeminiChatServiceImpl implements GeminiChatService {
 
     @Override
     public String askGemini(String userMessage) {
+
+        if (userMessage == null || userMessage.isBlank()) {
+            throw new BusinessException("Message cannot be empty");
+        }
 
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
@@ -68,7 +74,7 @@ public class GeminiChatServiceImpl implements GeminiChatService {
             return text.isEmpty() ? "No response from model" : text;
 
         } catch (Exception e) {
-            return "Error parsing response: " + e.getMessage();
+            throw new BusinessException("Invalid response format from Gemini API");
         }
     }
 
