@@ -1,5 +1,6 @@
 package com.gemora_server.service.impl;
 
+import com.gemora_server.exception.BusinessException;
 import com.gemora_server.service.FileStorageService;
 import com.gemora_server.util.FileStorageProperties;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             Files.createDirectories(this.gemsLocation);
             Files.createDirectories(this.certsLocation);
         } catch (Exception ex) {
-            throw new RuntimeException("Could not create upload directories", ex);
+            throw new BusinessException("Could not create upload directories");
         }
     }
 
@@ -44,13 +45,13 @@ public class FileStorageServiceImpl implements FileStorageService {
         String fileName = UUID.randomUUID().toString() + ext;
         try {
             if (fileName.contains("..")) {
-                throw new RuntimeException("Invalid path sequence " + fileName);
+                throw new BusinessException("Invalid path sequence " + fileName);
             }
             Path destination = targetLocation.resolve(fileName);
             Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
             return fileName;
         } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + originalFileName, ex);
+            throw new BusinessException("Could not store file " + originalFileName);
         }
     }
 
@@ -65,7 +66,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             Path filePath = (certificate ? certsLocation : gemsLocation).resolve(fileName).normalize();
             Files.deleteIfExists(filePath);
         } catch (IOException e) {
-            throw new RuntimeException("Could not delete file: " + fileName, e);
+            throw new BusinessException("Could not delete file: " + fileName);
         }
     }
 

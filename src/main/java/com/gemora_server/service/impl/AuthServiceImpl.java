@@ -3,6 +3,9 @@ package com.gemora_server.service.impl;
 import com.gemora_server.dto.*;
 import com.gemora_server.entity.PasswordResetOtp;
 import com.gemora_server.entity.User;
+import com.gemora_server.exception.BusinessException;
+import com.gemora_server.exception.ResourceNotFoundException;
+import com.gemora_server.exception.UnauthorizedException;
 import com.gemora_server.repo.PasswordResetOtpRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.AuthService;
@@ -34,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
                                                      MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage) {
 
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already registered!");
+            throw new BusinessException("Email already registered!");
         }
 
         String idFrontUrl = saveFile(idFrontImage, "id_front");
@@ -60,10 +63,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponseDto loginUser(LoginRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password!"));
+                .orElseThrow(() -> new UnauthorizedException("Invalid email or password!"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password!");
+            throw new UnauthorizedException("Invalid email or password!");
         }
 
         String token = jwtUtil.generateToken(user.getId(), user.getEmail());
@@ -87,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
             String relativePath = "uploads/users/" + fileName;
             return "http://192.168.8.101:8080/" + relativePath.replace("\\", "/");
         } catch (IOException e) {
-            throw new RuntimeException("File upload failed: " + e.getMessage());
+            throw new BusinessException("File upload failed: " + e.getMessage());
         }
     }
 
@@ -96,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
     public void sendForgotPasswordOtp(ForgotPasswordRequestDto request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String otp = String.valueOf(100000 + new Random().nextInt(900000));
 
@@ -119,11 +122,11 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("OTP not found"));
 
         if (otpEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("OTP expired");
+            throw new BusinessException("OTP expired");
         }
 
         if (!otpEntity.getOtp().equals(request.getOtp())) {
-            throw new RuntimeException("Invalid OTP");
+            throw new BusinessException("Invalid OTP");
         }
 
         User user = userRepository.findByEmail(request.getEmail())

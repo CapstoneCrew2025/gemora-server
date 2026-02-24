@@ -22,7 +22,7 @@ public class DataSeeder implements CommandLineRunner {
         String adminEmail = "admin@gemora.com";
 
         if (userRepository.existsByEmail(adminEmail)) {
-            System.out.println("✅ Admin user already exists.");
+            System.out.println(" Admin user already exists.");
             return;
         }
 
@@ -39,6 +39,6 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         userRepository.save(admin);
-        System.out.println("🚀 Default admin account created: " + adminEmail);
+        System.out.println(" Default admin account created: " + adminEmail);
     }
 }

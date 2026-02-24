@@ -10,6 +10,8 @@ import com.gemora_server.entity.GemImage;
 import com.gemora_server.entity.User;
 import com.gemora_server.enums.GemStatus;
 import com.gemora_server.enums.ListingType;
+import com.gemora_server.exception.BusinessException;
+import com.gemora_server.exception.ResourceNotFoundException;
 import com.gemora_server.repo.CertificateRepo;
 import com.gemora_server.repo.GemImageRepo;
 import com.gemora_server.repo.GemRepo;
@@ -41,7 +43,7 @@ public class GemServiceImpl implements GemService {
     @Transactional
     public GemDto createGem(Long sellerId, GemCreateRequest request, List<MultipartFile> images, MultipartFile certificateFile) {
         User seller = userRepo.findById(sellerId)
-                .orElseThrow(() -> new RuntimeException("Seller not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
 
         ListingType listingType =
                 request.getListingType() == null ? ListingType.SALE : request.getListingType();
@@ -120,7 +122,7 @@ public class GemServiceImpl implements GemService {
 
     @Override
     public List<GemDto> getMyGems(Long sellerId) {
-        User seller = userRepo.findById(sellerId).orElseThrow(() -> new RuntimeException("Seller not found"));
+        User seller = userRepo.findById(sellerId).orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
         return gemRepo.findBySeller(seller).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
@@ -131,14 +133,14 @@ public class GemServiceImpl implements GemService {
 
     @Override
     public GemDto getGem(Long id) {
-        Gem gem = gemRepo.findById(id).orElseThrow(() -> new RuntimeException("Gem not found"));
+        Gem gem = gemRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
         return mapToDto(gem);
     }
 
     @Override
     @Transactional
     public GemDto approveGem(Long gemId, String adminUsername) {
-        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new RuntimeException("Gem not found"));
+        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
         gem.setStatus(GemStatus.APPROVED);
         gem.setUpdatedAt(LocalDateTime.now());
         Gem saved = gemRepo.save(gem);
@@ -148,7 +150,7 @@ public class GemServiceImpl implements GemService {
     @Override
     @Transactional
     public GemDto rejectGem(Long gemId, String adminUsername, String reason) {
-        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new RuntimeException("Gem not found"));
+        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
         gem.setStatus(GemStatus.REJECTED);
         gem.setUpdatedAt(LocalDateTime.now());
         Gem saved = gemRepo.save(gem);
@@ -159,7 +161,7 @@ public class GemServiceImpl implements GemService {
     @Override
     @Transactional
     public void deleteGem(Long gemId, Long sellerId) {
-        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new RuntimeException("Gem not found"));
+        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
         if (!gem.getSeller().getId().equals(sellerId)) {
             throw new RuntimeException("Not authorized to delete");
         }
@@ -169,7 +171,7 @@ public class GemServiceImpl implements GemService {
     @Override
     @Transactional
     public GemDto uploadCertificate(Long gemId, MultipartFile certificateFile, String certificateNumber, String issuingAuthority, String issueDate) {
-        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new RuntimeException("Gem not found"));
+        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
         String fileName = fileStorageService.storeCertificateFile(certificateFile);
         String url = "/uploads/certificates/" + fileName;
         LocalDate parsedIssueDate = null;
@@ -197,7 +199,7 @@ public class GemServiceImpl implements GemService {
     @Override
     @Transactional
     public void verifyCertificate(Long certificateId, boolean verified, String adminUsername) {
-        Certificate cert = certificateRepo.findById(certificateId).orElseThrow(() -> new RuntimeException("Certificate not found"));
+        Certificate cert = certificateRepo.findById(certificateId).orElseThrow(() -> new ResourceNotFoundException("Certificate not found"));
         cert.setVerified(verified);
         cert.setVerifiedBy(adminUsername);
         cert.setVerifiedAt(LocalDateTime.now());
@@ -219,7 +221,7 @@ public class GemServiceImpl implements GemService {
     @Transactional
     public void deleteGemAsAdmin(Long gemId, String adminUsername) {
         Gem gem = gemRepo.findById(gemId)
-                .orElseThrow(() -> new RuntimeException("Gem not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
 
         // TODO: store audit log of who deleted the gem (future enhancement)
 
@@ -244,14 +246,14 @@ public class GemServiceImpl implements GemService {
     public GemDto updateGem(Long gemId, Long sellerId, GemUpdateRequestDto req,
                             List<MultipartFile> newImages, MultipartFile certificateFile) {
 
-        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new RuntimeException("Gem not found"));
+        Gem gem = gemRepo.findById(gemId).orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
         if (!gem.getSeller().getId().equals(sellerId)) {
-            throw new RuntimeException("Not authorized to update this gem");
+            throw new BusinessException("Not authorized to update this gem");
         }
 
         // Allow edits only if PENDING or REJECTED
         if (!(gem.getStatus() == GemStatus.PENDING || gem.getStatus() == GemStatus.REJECTED)) {
-            throw new RuntimeException("Cannot edit gem after approval");
+            throw new BusinessException("Cannot edit gem after approval");
         }
 
         // Update basic details if provided
