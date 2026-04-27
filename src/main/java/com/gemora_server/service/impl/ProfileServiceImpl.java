@@ -13,6 +13,7 @@ import com.gemora_server.service.ProfileService;
 import com.gemora_server.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "users" + File.separator;
 
     @Override
+    @Transactional(readOnly = true)
     public UserProfileDto getUserProfile(String token) {
 
         if (token.startsWith("Bearer ")) {
@@ -51,6 +53,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Transactional
     public UserProfileDto updateUserProfile(String token, ProfileUpdateDto request) {
         if (token.startsWith("Bearer ")) token = token.substring(7);
 
@@ -89,6 +92,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 
     @Override
+    @Transactional
     public String markGemAsSold(String token, Long gemId) {
 
 
