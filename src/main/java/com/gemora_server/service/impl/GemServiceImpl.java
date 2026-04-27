@@ -18,9 +18,9 @@ import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.FileStorageService;
 import com.gemora_server.service.GemService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -121,17 +121,20 @@ public class GemServiceImpl implements GemService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<GemDto> getMyGems(Long sellerId) {
         User seller = userRepo.findById(sellerId).orElseThrow(() -> new ResourceNotFoundException("Seller not found"));
         return gemRepo.findBySeller(seller).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<GemDto> getApprovedGems() {
         return gemRepo.findByStatus(GemStatus.APPROVED).stream().map(this::mapToDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public GemDto getGem(Long id) {
         Gem gem = gemRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Gem not found"));
         return mapToDto(gem);
@@ -208,6 +211,7 @@ public class GemServiceImpl implements GemService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<GemDto> getAllGemsByStatus(String status) {
         GemStatus gemStatus = GemStatus.valueOf(status.toUpperCase());
         return gemRepo.findByStatus(gemStatus)
