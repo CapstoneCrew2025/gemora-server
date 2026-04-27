@@ -22,12 +22,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ChatMessageServiceImpl implements ChatMessageService {
 
     private final ChatMessageRepo chatMessageRepository;
     private final UserRepo userRepo;
     private final GemRepo gemRepo ;
 
+
+    @Override
+    @Transactional
     public ChatMessageResponseDto saveMessage(ChatMessageRequestDto request, Long senderId ) {
 
         String roomId = generateRoomId(senderId, request.getReceiverId(),request.getGemId());

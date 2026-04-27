@@ -14,6 +14,7 @@ import com.gemora_server.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String UPLOAD_SUBDIR = "uploads" + File.separator + "users" + File.separator;
 
     @Override
+    @Transactional
     public RegisterResponseDto registerUserWithFiles(String name, String email, String password, String contactNumber,
                                                      MultipartFile idFrontImage, MultipartFile idBackImage, MultipartFile selfieImage) {
 
@@ -61,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LoginResponseDto loginUser(LoginRequestDto request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Invalid email or password!"));
@@ -96,6 +99,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
+    @Transactional
     public void sendForgotPasswordOtp(ForgotPasswordRequestDto request) {
 
         User user = userRepository.findByEmail(request.getEmail())
@@ -115,6 +119,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
+    @Transactional
     public void verifyOtpAndResetPassword(VerifyOtpAndResetPasswordDto request) {
 
         PasswordResetOtp otpEntity = otpRepo
