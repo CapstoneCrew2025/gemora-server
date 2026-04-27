@@ -13,7 +13,7 @@ import com.gemora_server.repo.BidRepo;
 import com.gemora_server.repo.GemRepo;
 import com.gemora_server.repo.UserRepo;
 import com.gemora_server.service.BidService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class BidServiceImpl implements BidService {
 
     private final BidRepo bidRepository;

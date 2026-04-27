@@ -11,18 +11,21 @@ import com.gemora_server.service.SupportTicketService;
 import com.gemora_server.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class SupportTicketServiceImpl implements SupportTicketService {
 
     private final SupportTicketRepo ticketRepository;
     private final JwtUtil jwtUtil;
 
     @Override
+    @Transactional
     public void createTicket(String token, CreateTicketDto dto) {
 
         Long userId = jwtUtil.extractUserId(token);
@@ -60,6 +63,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
     }
 
     @Override
+    @Transactional
     public void replyToTicket(Long ticketId, TicketReplyDto dto) {
 
         SupportTicket ticket = ticketRepository.findById(ticketId)
